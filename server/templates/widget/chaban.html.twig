@@ -1,0 +1,19 @@
+<div class="widget chaban">
+    <div class="tile-title">Pont Chaban-Delmas · {{ data.days }} jour{{ data.days > 1 ? 's' }}</div>
+    {% if data.ongoing %}
+        <div class="chaban-ongoing">Fermé jusqu'à {{ data.ongoing.end|date('H:i') }}</div>
+    {% endif %}
+    {% if data.closures %}
+        <ul class="chaban-closures">
+            {% for closure in data.closures %}
+                <li>
+                    <span class="chaban-day">{{ closure.start|format_datetime(pattern: 'EEE d MMM', locale: 'fr')|capitalize }}</span>
+                    <b class="chaban-hours">{{ closure.start|date('H:i') }} – {{ closure.end|date('H:i') }}</b>
+                    <span class="chaban-reason muted">{{ closure.reason }}{{ closure.total ? '' : ' · partielle' }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="notice muted">Aucune fermeture prévue</p>
+    {% endif %}
+</div>

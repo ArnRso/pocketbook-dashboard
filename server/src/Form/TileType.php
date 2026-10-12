@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Entity\Place;
+use App\Entity\Tile\ChabanTile;
 use App\Entity\Tile\CommuteTile;
 use App\Entity\Tile\Tile;
 use App\Entity\Tile\WeatherTile;
 use App\Entity\Trip;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -39,6 +41,12 @@ final class TileType extends AbstractType
                 'label' => 'Trajet',
                 'class' => Trip::class,
                 'placeholder' => 'Choisir un trajet',
+            ]);
+        }
+        if ($tile instanceof ChabanTile) {
+            $builder->add('days', IntegerType::class, [
+                'label' => 'Nombre de jours à venir',
+                'attr' => ['min' => 1, 'max' => ChabanTile::MAX_DAYS],
             ]);
         }
 

@@ -6,6 +6,7 @@ namespace App\Tests\Entity;
 
 use App\Entity\Dashboard;
 use App\Entity\Place;
+use App\Entity\Tile\ChabanTile;
 use App\Entity\Tile\ClockTile;
 use App\Entity\Tile\CommuteTile;
 use App\Entity\Tile\CurrentWeatherTile;
@@ -27,6 +28,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[CoversClass(RainTile::class)]
 #[CoversClass(HourlyForecastTile::class)]
 #[CoversClass(CommuteTile::class)]
+#[CoversClass(ChabanTile::class)]
 final class TileTest extends KernelTestCase
 {
     #[DataProvider('tiles')]
@@ -50,6 +52,15 @@ final class TileTest extends KernelTestCase
         yield 'pluie' => [(new RainTile())->setPlace($home), 'rain', 'Pluie · Maison', 12, 2];
         yield 'prévisions' => [(new HourlyForecastTile())->setPlace($home), 'hourly_forecast', 'Prévisions heure par heure · Maison', 12, 4];
         yield 'trajet' => [(new CommuteTile())->setTrip($trip), 'commute', 'Trajet · Maison → Travail', 12, 5];
+        yield 'pont' => [new ChabanTile(), 'chaban', 'Pont Chaban-Delmas · 7 jours', 12, 3];
+    }
+
+    public function testBridgeDaysAreBounded(): void
+    {
+        self::assertSame('days', $this->validate((new ChabanTile())->setDays(0))->get(0)->getPropertyPath());
+        self::assertSame('days', $this->validate((new ChabanTile())->setDays(31))->get(0)->getPropertyPath());
+        self::assertSame('days', $this->validate((new ChabanTile())->setDays(null))->get(0)->getPropertyPath());
+        self::assertCount(0, $this->validate((new ChabanTile())->setDays(30)));
     }
 
     #[DataProvider('positions')]

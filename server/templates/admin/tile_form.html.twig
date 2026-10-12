@@ -21,6 +21,7 @@
             {{ form_errors(form) }}
             {% if form.place is defined %}{{ form_row(form.place) }}{% endif %}
             {% if form.trip is defined %}{{ form_row(form.trip) }}{% endif %}
+            {% if form.days is defined %}<div style="width: 14rem">{{ form_row(form.days) }}</div>{% endif %}
 
             <fieldset class="mb-4">
                 <legend class="h6 mb-3">{{ form.schedule.vars.label }}</legend>

@@ -7,6 +7,10 @@ framework:
             cache.traffic:
                 adapter: cache.app
                 default_lifetime: 300
+            # Les prévisions de fermeture du pont changent rarement
+            cache.bridge:
+                adapter: cache.app
+                default_lifetime: 3600
 
 when@test:
     framework:

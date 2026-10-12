@@ -41,7 +41,7 @@ final class GridEditorTest extends FunctionalTestCase
         $hourly = $this->item($crawler, 'Prévisions heure par heure · Maison');
         self::assertSame(['0', '7', '12', '4'], [$hourly->attr('gs-x'), $hourly->attr('gs-y'), $hourly->attr('gs-w'), $hourly->attr('gs-h')]);
         self::assertSelectorTextContains('.grid-stack', 'Tous les jours, 06:00–20:00');
-        self::assertSelectorCount(5, '.tile-types .dropdown-item');
+        self::assertSelectorCount(6, '.tile-types .dropdown-item');
         self::assertSelectorExists(\sprintf('img[src="/preview.png?dashboard=%d"]', (int) $dashboard->getId()));
 
         $this->client->request('GET', $this->url($dashboard, '/grid?time=21:00'));
@@ -144,6 +144,24 @@ final class GridEditorTest extends FunctionalTestCase
         $added = static::getContainer()->get(TileRepository::class)->findOneBy(['row' => 12, 'column' => 1, 'height' => 2]);
         self::assertInstanceOf(RainTile::class, $added);
         self::assertSame('Tous les jours, 21:00–23:00', (string) $added->getSchedule());
+    }
+
+    public function testBridgeTileShowsTheChosenNumberOfDays(): void
+    {
+        $dashboard = (new Dashboard())->setName('Pont');
+        $this->entityManager()->persist($dashboard);
+        $this->entityManager()->flush();
+        $this->logIn();
+
+        $this->client->request('GET', $this->url($dashboard, '/tiles/new/chaban'));
+        self::assertInputValueSame('tile[days]', '7');
+        $this->client->submitForm('Enregistrer', ['tile[days]' => '14']);
+        self::assertResponseRedirects($this->url($dashboard, '/grid'));
+
+        $this->client->request('GET', \sprintf('/preview?dashboard=%d', (int) $dashboard->getId()));
+        self::assertSelectorTextContains('.tile-chaban .tile-title', 'Pont Chaban-Delmas · 14 jours');
+        self::assertSelectorCount(4, '.chaban-closures li');
+        self::assertSelectorTextContains('.chaban-closures li', 'Sam. 17 oct. 10:34 – 11:57 Silver Dawn');
     }
 
     public function testNewTileWithoutFreeSpotIsRefused(): void

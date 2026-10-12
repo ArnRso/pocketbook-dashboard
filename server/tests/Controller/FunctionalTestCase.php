@@ -52,6 +52,7 @@ abstract class FunctionalTestCase extends WebTestCase
             ? $this->autocompleteResponse
             : $this->routingResponse,
         ));
+        $container->set('bordeaux_metropole.client', new MockHttpClient(static fn (): MockResponse => self::fixture('chaban-closures.json'), 'https://opendata.bordeaux-metropole.fr'));
         $container->set('gotenberg.client', new MockHttpClient(static fn (string $method, string $url): MockResponse => str_ends_with($url, '/version')
             ? new MockResponse('8.25.0')
             : new MockResponse(self::screenshot(), ['response_headers' => ['Content-Type' => 'image/png']]),
