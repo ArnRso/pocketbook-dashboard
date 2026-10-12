@@ -32,7 +32,6 @@ final class ScheduleType extends AbstractType
                 'input' => 'datetime_immutable',
                 'placeholder' => '—',
                 'required' => false,
-                'help' => 'Sans horaires, la tuile est affichée toute la journée.',
             ])
             ->add('endTime', QuarterHourType::class, [
                 'label' => 'À',

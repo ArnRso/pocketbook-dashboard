@@ -2,22 +2,48 @@
 
 {% form_theme form 'bootstrap_5_layout.html.twig' %}
 
+{% block head_stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Jours en boutons à bascule, aux couleurs des boutons d'EasyAdmin */
+        .weekdays .btn-check { position: absolute; clip: rect(0, 0, 0, 0); pointer-events: none; }
+        .weekdays .btn { border: 1px solid var(--ea-primary); background: transparent; color: var(--ea-primary); }
+        .weekdays .btn-check:checked + .btn { background: var(--button-primary-bg); color: var(--button-primary-color); }
+        .weekdays .btn-check:focus-visible + .btn { box-shadow: var(--button-primary-box-shadow); }
+    </style>
+{% endblock %}
+
 {% block content_title title %}
 
 {% block main %}
-    <div style="max-width: 640px">
+    <div style="max-width: 720px">
         {{ form_start(form) }}
             {{ form_errors(form) }}
             {% if form.place is defined %}{{ form_row(form.place) }}{% endif %}
             {% if form.trip is defined %}{{ form_row(form.trip) }}{% endif %}
-            <fieldset class="mb-3">
-                <legend class="h6">{{ form.schedule.vars.label }}</legend>
-                {{ form_row(form.schedule.weekdays, {label_attr: {class: 'checkbox-inline'}}) }}
-                <div class="d-flex gap-3">
-                    {{ form_row(form.schedule.startTime) }}
-                    {{ form_row(form.schedule.endTime) }}
+
+            <fieldset class="mb-4">
+                <legend class="h6 mb-3">{{ form.schedule.vars.label }}</legend>
+
+                <div class="mb-3">
+                    {{ form_label(form.schedule.weekdays) }}
+                    <div class="weekdays d-flex flex-wrap gap-2">
+                        {% for day in form.schedule.weekdays %}
+                            <input type="checkbox" class="btn-check" id="{{ day.vars.id }}" name="{{ day.vars.full_name }}" value="{{ day.vars.value }}" autocomplete="off" {{ day.vars.checked ? 'checked' }}>
+                            <label class="btn" for="{{ day.vars.id }}">{{ day.vars.label }}</label>
+                            {% do day.setRendered %}
+                        {% endfor %}
+                    </div>
+                    {{ form_errors(form.schedule.weekdays) }}
                 </div>
+
+                <div class="d-flex flex-wrap gap-3">
+                    <div style="width: 10rem">{{ form_row(form.schedule.startTime) }}</div>
+                    <div style="width: 10rem">{{ form_row(form.schedule.endTime) }}</div>
+                </div>
+                <div class="form-text">Sans horaires, la tuile est affichée toute la journée.</div>
             </fieldset>
+
             {{ form_row(form.save) }}
         {{ form_end(form) }}
         <a href="{{ path('admin_dashboard_grid', {id: dashboard.id}) }}">Retour à la grille</a>
