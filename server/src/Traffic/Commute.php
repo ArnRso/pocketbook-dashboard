@@ -22,14 +22,6 @@ final readonly class Commute
         return $this->routes[0];
     }
 
-    /**
-     * @return list<Route>
-     */
-    public function alternatives(): array
-    {
-        return \array_slice($this->routes, 1);
-    }
-
     public function arrival(): \DateTimeImmutable
     {
         return $this->departure->modify(\sprintf('+%d minutes', (int) round($this->best()->minutes)));

@@ -49,8 +49,8 @@ final class PreviewTest extends FunctionalTestCase
         self::assertSelectorTextContains('.widget-commute .duration', '19');
         self::assertSelectorTextContains('.widget-commute .status', 'Trafic fluide');
         self::assertSelectorTextContains('.widget-commute', 'Arrivée vers 13:39');
-        self::assertSelectorTextContains('.alternatives', 'Rue de Bonnel Lyon');
-        self::assertSelectorTextContains('.alternatives', '(+8)');
+        self::assertSelectorTextContains('.widget-commute', '9,6 km par Boulevard Périphérique Nord');
+        self::assertSelectorTextNotContains('.widget-commute', 'Rue de Bonnel Lyon');
         self::assertSelectorNotExists('.unavailable');
     }
 

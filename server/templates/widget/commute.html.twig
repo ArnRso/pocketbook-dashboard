@@ -13,16 +13,6 @@
                 <div>{{ best.kilometers|number_format(1, ',') }} km par {{ best.name }}</div>
             </div>
         </div>
-        {% if commute.alternatives %}
-            <ul class="alternatives">
-                {% for route in commute.alternatives %}
-                    <li>
-                        <span>par {{ route.name }}</span>
-                        <span><b>{{ route.minutes|round }} min</b>{% if route.delay >= 1 %} <span class="muted">(+{{ route.delay|round }})</span>{% endif %}</span>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
     {% else %}
         <h2>Trajet</h2>
         <p class="notice muted">Aucun trajet prévu à cette heure</p>

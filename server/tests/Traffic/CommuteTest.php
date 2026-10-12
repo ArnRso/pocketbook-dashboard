@@ -25,7 +25,6 @@ final class CommuteTest extends TestCase
 
         self::assertSame('A', $commute->best()->name);
         self::assertSame('08:19', $commute->arrival()->format('H:i'));
-        self::assertSame(['B'], array_map(static fn (Route $route) => $route->name, $commute->alternatives()));
     }
 
     public function testArrivalIsRoundedToTheNearestMinute(): void
