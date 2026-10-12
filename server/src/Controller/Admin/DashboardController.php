@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Form\PreviewType;
+use App\Screen\PreviewMoment;
+use App\Screen\PreviewQuery;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
@@ -17,17 +19,23 @@ class DashboardController extends AbstractDashboardController
 {
     public function __construct(
         private readonly RequestStack $requestStack,
+        private readonly PreviewMoment $previewMoment,
     ) {
     }
 
     public function index(): Response
     {
-        $form = $this->createForm(PreviewType::class);
+        $query = new PreviewQuery();
+        $form = $this->createForm(PreviewType::class, $query);
         $form->handleRequest($this->requestStack->getCurrentRequest());
+        if ($form->isSubmitted() && !$form->isValid()) {
+            $query = new PreviewQuery();
+        }
 
         return $this->render('admin/index.html.twig', [
             'form' => $form,
-            'at' => $form->isSubmitted() && $form->isValid() ? $form->get('at')->getData() : null,
+            'query' => $query,
+            'at' => $this->previewMoment->resolve($query),
         ]);
     }
 

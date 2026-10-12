@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Screen\PreviewMoment;
 use App\Screen\PreviewQuery;
 use App\Screen\ScreenRenderer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,10 +27,11 @@ final class DashboardController extends AbstractController
     #[Route('/preview', name: 'app_preview', methods: ['GET'])]
     public function preview(
         ScreenRenderer $screen,
+        PreviewMoment $moment,
         #[MapQueryString(validationFailedStatusCode: Response::HTTP_BAD_REQUEST)]
         PreviewQuery $query = new PreviewQuery(),
     ): Response {
-        return new Response($screen->html($query->at));
+        return new Response($screen->html($moment->resolve($query)));
     }
 
     /**
@@ -38,10 +40,11 @@ final class DashboardController extends AbstractController
     #[Route('/preview.png', name: 'app_preview_image', methods: ['GET'])]
     public function previewImage(
         ScreenRenderer $screen,
+        PreviewMoment $moment,
         #[MapQueryString(validationFailedStatusCode: Response::HTTP_BAD_REQUEST)]
         PreviewQuery $query = new PreviewQuery(),
     ): Response {
-        return new Response($screen->png($query->at), Response::HTTP_OK, [
+        return new Response($screen->png($moment->resolve($query)), Response::HTTP_OK, [
             'Content-Type' => 'image/png',
             'Cache-Control' => 'no-store',
         ]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Admin\Field\QuarterHourField;
 use App\Controller\Admin\DashboardController;
 use App\Controller\Admin\DeviceCrudController;
 use App\Controller\Admin\PlaceCrudController;
@@ -12,6 +13,7 @@ use App\Entity\Place;
 use App\EventSubscriber\GeocodePlaceSubscriber;
 use App\Form\PreviewType;
 use App\Repository\PlaceRepository;
+use App\Repository\TripRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -22,6 +24,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 #[CoversClass(DeviceCrudController::class)]
 #[CoversClass(GeocodePlaceSubscriber::class)]
 #[CoversClass(PreviewType::class)]
+#[CoversClass(QuarterHourField::class)]
 final class AdminTest extends FunctionalTestCase
 {
     #[DataProvider('pages')]
@@ -51,21 +54,60 @@ final class AdminTest extends FunctionalTestCase
         yield 'nouvelle liseuse' => ['/admin/device/new', 'Ajouter une liseuse'];
     }
 
-    public function testPreviewAtAChosenMoment(): void
+    public function testPreviewOnAChosenDayAndTime(): void
     {
         $this->logIn();
 
         $this->client->request('GET', '/admin');
         self::assertSelectorTextContains('body', 'telle que les liseuses la reçoivent');
         self::assertSelectorExists('img[src="/preview.png"]');
+        self::assertSelectorCount(96 + 1, 'select[name="time"] option');
 
-        $this->client->submitForm('Prévisualiser', ['at' => '2026-10-13T21:30'], 'GET');
+        $this->client->submitForm('Prévisualiser', ['day' => '2', 'time' => '21:30'], 'GET');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'recevraient le mardi 13 octobre à 21:30');
-        self::assertSelectorExists('img[src="/preview.png?at=2026-10-13T21:30"]');
-        self::assertSelectorExists('a[href="/preview?at=2026-10-13T21:30"]');
-        self::assertInputValueSame('at', '2026-10-13T21:30');
+        self::assertSelectorTextContains('body', 'recevraient mardi à 21:30');
+        self::assertSelectorExists('img[src="/preview.png?day=2&time=21:30"]');
+        self::assertSelectorExists('a[href="/preview?day=2&time=21:30"]');
+        self::assertSelectorExists('select[name="day"] option[value="2"][selected]');
+        self::assertSelectorExists('select[name="time"] option[value="21:30"][selected]');
+    }
+
+    public function testInvalidPreviewFallsBackToTheCurrentMoment(): void
+    {
+        $this->logIn();
+
+        $this->client->request('GET', '/admin?day=9&time=21:30&preview=');
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorExists('select[name="day"].is-invalid');
+        self::assertSelectorTextContains('body', 'telle que les liseuses la reçoivent');
+        self::assertSelectorExists('img[src="/preview.png"]');
+    }
+
+    public function testTripHoursAreChosenByQuarterHour(): void
+    {
+        $trip = $this->createCommute();
+        $this->logIn();
+
+        $crawler = $this->client->request('GET', \sprintf('/admin/trip/%d/edit', (int) $trip->getId()));
+        self::assertSelectorExists('select[name="Trip[startTime]"] option[value="06:00"][selected]');
+        self::assertSelectorCount(96, 'select[name="Trip[endTime]"] option');
+
+        $form = $crawler->selectButton('Sauvegarder les modifications')->form([
+            'Trip[startTime]' => '07:15',
+            'Trip[endTime]' => '09:45',
+        ]);
+        $this->client->submit($form);
+
+        self::assertResponseRedirects();
+        $saved = static::getContainer()->get(TripRepository::class)->find($trip->getId());
+        self::assertNotNull($saved);
+        self::assertSame('07:15', $saved->getStartTime()?->format('H:i'));
+        self::assertSame('09:45', $saved->getEndTime()?->format('H:i'));
+
+        $this->client->request('GET', '/admin/trip');
+        self::assertSelectorTextSame('td[data-column="startTime"]', '07:15');
     }
 
     public function testDeviceListShowsWhetherAKeyExists(): void

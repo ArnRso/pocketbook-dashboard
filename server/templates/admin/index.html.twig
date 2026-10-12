@@ -1,21 +1,23 @@
 {% extends '@EasyAdmin/page/content.html.twig' %}
 
-{% block content_title 'Aperçu' %}
-
 {% form_theme form 'bootstrap_5_layout.html.twig' %}
 
+{% block content_title 'Aperçu' %}
+
 {% block main %}
-    {% set query = at ? {at: at|date(constant('App\\Screen\\PreviewQuery::DATE_FORMAT'))} : {} %}
+    {% set parameters = {day: query.day, time: query.time}|filter(value => value is not null) %}
 
     {{ form_start(form, {attr: {class: 'd-flex align-items-end gap-3 mb-3'}}) }}
-        {{ form_row(form.at) }}
+        {{ form_row(form.day) }}
+        {{ form_row(form.time) }}
         {{ form_row(form.preview) }}
     {{ form_end(form) }}
 
     <p>
-        Voici l'image telle que les liseuses la {{ at ? 'recevraient le ' ~ at|format_datetime(pattern: "EEEE d MMMM 'à' HH:mm", locale: 'fr') : 'reçoivent' }}.
-        La <a href="{{ path('app_preview', query) }}" target="_blank">version HTML</a> est pratique pour travailler la mise en page.
+        Voici l'image telle que les liseuses la {{ at ? 'recevraient ' ~ at|format_datetime(pattern: "EEEE 'à' HH:mm", locale: 'fr') : 'reçoivent' }}.
+        Météo et trafic restent ceux du moment présent.
+        La <a href="{{ path('app_preview', parameters) }}" target="_blank">version HTML</a> est pratique pour travailler la mise en page.
     </p>
-    <img src="{{ path('app_preview_image', query) }}" alt="Aperçu du dashboard"
+    <img src="{{ path('app_preview_image', parameters) }}" alt="Aperçu du dashboard"
          style="max-width: 100%; max-height: 80vh; border: 1px solid var(--border-color); border-radius: 8px">
 {% endblock %}

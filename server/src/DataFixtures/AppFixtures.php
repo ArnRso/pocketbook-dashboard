@@ -48,7 +48,7 @@ final class AppFixtures extends Fixture
             ->setOrigin($work)
             ->setDestination($home)
             ->setStartTime(new \DateTimeImmutable('14:00'))
-            ->setEndTime(new \DateTimeImmutable('23:59'))
+            ->setEndTime(new \DateTimeImmutable('23:45'))
             ->setWeekdays([1, 2, 3, 4, 5, 6, 7]);
 
         $device = (new Device())->setName('Liseuse de démonstration');

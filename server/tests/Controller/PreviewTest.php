@@ -8,6 +8,7 @@ use App\Controller\DashboardController;
 use App\Entity\Place;
 use App\Repository\PlaceRepository;
 use App\Repository\TripRepository;
+use App\Screen\PreviewMoment;
 use App\Screen\PreviewQuery;
 use App\Screen\ScreenRenderer;
 use App\Widget\CacheKey;
@@ -17,11 +18,13 @@ use App\Widget\WeatherView;
 use App\Widget\WeatherWidget;
 use App\Widget\WidgetRenderer;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
 #[CoversClass(DashboardController::class)]
 #[CoversClass(ScreenRenderer::class)]
 #[CoversClass(PreviewQuery::class)]
+#[CoversClass(PreviewMoment::class)]
 #[CoversClass(WidgetRenderer::class)]
 #[CoversClass(WeatherWidget::class)]
 #[CoversClass(WeatherView::class)]
@@ -137,12 +140,12 @@ final class PreviewTest extends FunctionalTestCase
         self::assertSelectorTextContains('.widget-commute.unavailable', 'Coordonnées manquantes pour le trajet Maison → Travail');
     }
 
-    public function testPreviewAtAChosenMomentShowsTheWidgetsOfThatMoment(): void
+    public function testPreviewOnAChosenDayAndTimeShowsTheWidgetsOfThatMoment(): void
     {
         $this->createCommute();
         $this->logIn();
 
-        $this->client->request('GET', '/preview?at=2026-10-13T21:30');
+        $this->client->request('GET', '/preview?day=2&time=21:30');
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('.date', 'Mardi 13 octobre');
@@ -151,26 +154,51 @@ final class PreviewTest extends FunctionalTestCase
         // La météo reste celle du moment présent
         self::assertSelectorTextContains('.widget-weather .temp', '16°');
 
-        $this->client->request('GET', '/preview?at=2026-10-13T07:00');
+        $this->client->request('GET', '/preview?day=2&time=07:00');
 
         self::assertSelectorTextContains('.widget-commute h2', 'Maison → Travail');
         self::assertSelectorTextContains('.widget-commute', 'Arrivée vers 07:19');
     }
 
-    public function testInvalidMomentIsRejected(): void
+    public function testDayOrTimeAloneKeepsTheOtherOneCurrent(): void
     {
         $this->logIn();
 
-        $this->client->request('GET', '/preview?at=demain');
+        $this->client->request('GET', '/preview?time=07:00');
+        self::assertSelectorTextContains('.date', 'Lundi 12 octobre');
+        self::assertSelectorTextContains('.meta', 'Mis à jour à 07:00');
+
+        $this->client->request('GET', '/preview?day=7');
+        self::assertSelectorTextContains('.date', 'Dimanche 18 octobre');
+        self::assertSelectorTextContains('.meta', 'Mis à jour à 13:20');
+    }
+
+    #[DataProvider('invalidMoments')]
+    public function testInvalidMomentIsRejected(string $query): void
+    {
+        $this->logIn();
+
+        $this->client->request('GET', '/preview?'.$query);
 
         self::assertResponseStatusCodeSame(400);
     }
 
-    public function testPreviewImageAtAChosenMoment(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidMoments(): iterable
+    {
+        yield 'jour inexistant' => ['day=8'];
+        yield 'jour zéro' => ['day=0'];
+        yield 'heure hors quart d\'heure' => ['time=08:10'];
+        yield 'heure invalide' => ['time=25:00'];
+    }
+
+    public function testPreviewImageOnAChosenDayAndTime(): void
     {
         $this->logIn();
 
-        $this->client->request('GET', '/preview.png?at=2026-10-13T07:00');
+        $this->client->request('GET', '/preview.png?day=2&time=07:00');
 
         self::assertResponseIsSuccessful();
         self::assertResponseHeaderSame('Content-Type', 'image/png');

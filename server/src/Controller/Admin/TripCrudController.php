@@ -4,29 +4,20 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Admin\Field\QuarterHourField;
 use App\Entity\Trip;
+use App\Entity\Weekday;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TimeField;
 
 /**
  * @extends AbstractCrudController<Trip>
  */
 class TripCrudController extends AbstractCrudController
 {
-    private const WEEKDAYS = [
-        'Lundi' => 1,
-        'Mardi' => 2,
-        'Mercredi' => 3,
-        'Jeudi' => 4,
-        'Vendredi' => 5,
-        'Samedi' => 6,
-        'Dimanche' => 7,
-    ];
-
     public static function getEntityFqcn(): string
     {
         return Trip::class;
@@ -46,14 +37,10 @@ class TripCrudController extends AbstractCrudController
     {
         yield AssociationField::new('origin', 'Départ');
         yield AssociationField::new('destination', 'Arrivée');
-        yield TimeField::new('startTime', 'Affiché de')
-            ->setFormTypeOption('input', 'datetime_immutable')
-            ->setFormat('HH:mm');
-        yield TimeField::new('endTime', 'à')
-            ->setFormTypeOption('input', 'datetime_immutable')
-            ->setFormat('HH:mm');
+        yield QuarterHourField::new('startTime', 'Affiché de');
+        yield QuarterHourField::new('endTime', 'à');
         yield ChoiceField::new('weekdays', 'Jours')
-            ->setChoices(self::WEEKDAYS)
+            ->setChoices(Weekday::choices())
             ->allowMultipleChoices()
             ->renderExpanded();
         yield BooleanField::new('avoidTolls', 'Éviter les péages');
