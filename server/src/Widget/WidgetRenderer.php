@@ -27,12 +27,12 @@ class WidgetRenderer
     }
 
     #[AsTwigFunction('widget', isSafe: ['html'])]
-    public function render(string $name): string
+    public function render(string $name, \DateTimeImmutable $at): string
     {
         $widget = $this->widgets->get($name);
 
         try {
-            return $this->twig->render($widget->template(), ['data' => $widget->data()]);
+            return $this->twig->render($widget->template(), ['data' => $widget->data($at)]);
         } catch (DisplayableException $e) {
             $this->logger->warning('Widget "{widget}" indisponible : {message}', ['widget' => $name, 'message' => $e->getMessage(), 'exception' => $e]);
 

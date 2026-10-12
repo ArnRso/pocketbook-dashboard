@@ -8,6 +8,7 @@ use App\Controller\DashboardController;
 use App\Entity\Place;
 use App\Repository\PlaceRepository;
 use App\Repository\TripRepository;
+use App\Screen\PreviewQuery;
 use App\Screen\ScreenRenderer;
 use App\Widget\CacheKey;
 use App\Widget\CommuteView;
@@ -20,6 +21,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 
 #[CoversClass(DashboardController::class)]
 #[CoversClass(ScreenRenderer::class)]
+#[CoversClass(PreviewQuery::class)]
 #[CoversClass(WidgetRenderer::class)]
 #[CoversClass(WeatherWidget::class)]
 #[CoversClass(WeatherView::class)]
@@ -133,6 +135,45 @@ final class PreviewTest extends FunctionalTestCase
         $this->client->request('GET', '/preview');
 
         self::assertSelectorTextContains('.widget-commute.unavailable', 'Coordonnées manquantes pour le trajet Maison → Travail');
+    }
+
+    public function testPreviewAtAChosenMomentShowsTheWidgetsOfThatMoment(): void
+    {
+        $this->createCommute();
+        $this->logIn();
+
+        $this->client->request('GET', '/preview?at=2026-10-13T21:30');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.date', 'Mardi 13 octobre');
+        self::assertSelectorTextContains('.meta', 'Mis à jour à 21:30');
+        self::assertSelectorTextContains('.widget-commute', 'Aucun trajet prévu à cette heure');
+        // La météo reste celle du moment présent
+        self::assertSelectorTextContains('.widget-weather .temp', '16°');
+
+        $this->client->request('GET', '/preview?at=2026-10-13T07:00');
+
+        self::assertSelectorTextContains('.widget-commute h2', 'Maison → Travail');
+        self::assertSelectorTextContains('.widget-commute', 'Arrivée vers 07:19');
+    }
+
+    public function testInvalidMomentIsRejected(): void
+    {
+        $this->logIn();
+
+        $this->client->request('GET', '/preview?at=demain');
+
+        self::assertResponseStatusCodeSame(400);
+    }
+
+    public function testPreviewImageAtAChosenMoment(): void
+    {
+        $this->logIn();
+
+        $this->client->request('GET', '/preview.png?at=2026-10-13T07:00');
+
+        self::assertResponseIsSuccessful();
+        self::assertResponseHeaderSame('Content-Type', 'image/png');
     }
 
     public function testPreviewImage(): void

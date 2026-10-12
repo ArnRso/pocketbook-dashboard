@@ -99,8 +99,8 @@
         <div class="meta muted">Mis à jour à {{ generatedAt|date('H:i') }}</div>
     </header>
 
-    {{ widget('weather') }}
-    {{ widget('commute') }}
+    {{ widget('weather', generatedAt) }}
+    {{ widget('commute', generatedAt) }}
 
     <footer class="muted">
         <span>Météo : Open-Meteo / Météo-France</span>

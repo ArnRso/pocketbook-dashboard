@@ -10,6 +10,7 @@ use App\Controller\Admin\PlaceCrudController;
 use App\Controller\Admin\TripCrudController;
 use App\Entity\Place;
 use App\EventSubscriber\GeocodePlaceSubscriber;
+use App\Form\PreviewType;
 use App\Repository\PlaceRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -20,6 +21,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 #[CoversClass(TripCrudController::class)]
 #[CoversClass(DeviceCrudController::class)]
 #[CoversClass(GeocodePlaceSubscriber::class)]
+#[CoversClass(PreviewType::class)]
 final class AdminTest extends FunctionalTestCase
 {
     #[DataProvider('pages')]
@@ -47,6 +49,23 @@ final class AdminTest extends FunctionalTestCase
         yield 'nouveau trajet' => ['/admin/trip/new', 'Ajouter un trajet'];
         yield 'liseuses' => ['/admin/device', 'Liseuses'];
         yield 'nouvelle liseuse' => ['/admin/device/new', 'Ajouter une liseuse'];
+    }
+
+    public function testPreviewAtAChosenMoment(): void
+    {
+        $this->logIn();
+
+        $this->client->request('GET', '/admin');
+        self::assertSelectorTextContains('body', 'telle que les liseuses la reçoivent');
+        self::assertSelectorExists('img[src="/preview.png"]');
+
+        $this->client->submitForm('Prévisualiser', ['at' => '2026-10-13T21:30'], 'GET');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'recevraient le mardi 13 octobre à 21:30');
+        self::assertSelectorExists('img[src="/preview.png?at=2026-10-13T21:30"]');
+        self::assertSelectorExists('a[href="/preview?at=2026-10-13T21:30"]');
+        self::assertInputValueSame('at', '2026-10-13T21:30');
     }
 
     public function testDeviceListShowsWhetherAKeyExists(): void

@@ -19,18 +19,18 @@ use Twig\Loader\ArrayLoader;
 #[CoversClass(WidgetNotConfiguredException::class)]
 final class WidgetRendererTest extends TestCase
 {
-    public function testWidgetIsRenderedWithItsData(): void
+    public function testWidgetIsRenderedWithItsDataForTheGivenMoment(): void
     {
-        $widget = new FakeWidget(static fn (): object => new \ArrayObject(['value' => 42]));
+        $widget = new FakeWidget(static fn (\DateTimeImmutable $at): object => new \ArrayObject(['value' => $at->format('H:i')]));
 
-        self::assertSame('valeur : 42', $this->renderer($widget)->render('fake'));
+        self::assertSame('valeur : 08:00', $this->renderer($widget)->render('fake', new \DateTimeImmutable('2026-10-12 08:00')));
     }
 
     public function testDisplayableErrorReplacesTheWidget(): void
     {
         $widget = new FakeWidget(static fn (): never => throw new WidgetNotConfiguredException('Rien à afficher'));
 
-        self::assertSame('fake indisponible : Rien à afficher', $this->renderer($widget)->render('fake'));
+        self::assertSame('fake indisponible : Rien à afficher', $this->renderer($widget)->render('fake', new \DateTimeImmutable('2026-10-12 08:00')));
     }
 
     public function testUnexpectedErrorsAreNotHidden(): void
@@ -39,14 +39,14 @@ final class WidgetRendererTest extends TestCase
 
         $this->expectException(\LogicException::class);
 
-        $this->renderer($widget)->render('fake');
+        $this->renderer($widget)->render('fake', new \DateTimeImmutable('2026-10-12 08:00'));
     }
 
     public function testUnknownWidgetIsAnError(): void
     {
         $this->expectException(ServiceNotFoundException::class);
 
-        $this->renderer(new FakeWidget(static fn (): object => new \stdClass()))->render('inconnu');
+        $this->renderer(new FakeWidget(static fn (): object => new \stdClass()))->render('inconnu', new \DateTimeImmutable('2026-10-12 08:00'));
     }
 
     private function renderer(WidgetInterface $widget): WidgetRenderer
@@ -67,7 +67,7 @@ final class WidgetRendererTest extends TestCase
 final readonly class FakeWidget implements WidgetInterface
 {
     /**
-     * @param \Closure(): object $data
+     * @param \Closure(\DateTimeImmutable): object $data
      */
     public function __construct(
         private \Closure $data,
@@ -79,8 +79,8 @@ final readonly class FakeWidget implements WidgetInterface
         return 'fake.html.twig';
     }
 
-    public function data(): object
+    public function data(\DateTimeImmutable $at): object
     {
-        return ($this->data)();
+        return ($this->data)($at);
     }
 }

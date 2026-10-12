@@ -27,7 +27,10 @@ final class WeatherWidget implements WidgetInterface
         return 'widget/weather.html.twig';
     }
 
-    public function data(): WeatherView
+    /**
+     * Les prévisions sont toujours celles du moment présent, y compris pour un aperçu.
+     */
+    public function data(\DateTimeImmutable $at): WeatherView
     {
         $place = $this->places->findWeatherLocation() ?? throw new WidgetNotConfiguredException('Aucun lieu météo configuré');
         $coordinates = $place->getCoordinates()

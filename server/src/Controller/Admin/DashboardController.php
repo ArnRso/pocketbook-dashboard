@@ -4,18 +4,31 @@ declare(strict_types=1);
 
 namespace App\Controller\Admin;
 
+use App\Form\PreviewType;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
 class DashboardController extends AbstractDashboardController
 {
+    public function __construct(
+        private readonly RequestStack $requestStack,
+    ) {
+    }
+
     public function index(): Response
     {
-        return $this->render('admin/index.html.twig');
+        $form = $this->createForm(PreviewType::class);
+        $form->handleRequest($this->requestStack->getCurrentRequest());
+
+        return $this->render('admin/index.html.twig', [
+            'form' => $form,
+            'at' => $form->isSubmitted() && $form->isValid() ? $form->get('at')->getData() : null,
+        ]);
     }
 
     public function configureDashboard(): Dashboard

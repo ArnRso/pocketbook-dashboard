@@ -7,7 +7,6 @@ namespace App\Widget;
 use App\Repository\TripRepository;
 use App\Traffic\Commute;
 use App\Traffic\TravelTimeProviderInterface;
-use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -20,7 +19,6 @@ final class CommuteWidget implements WidgetInterface
         private readonly TravelTimeProviderInterface $travelTime,
         #[Target('cache.traffic')]
         private readonly CacheInterface $trafficCache,
-        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -29,10 +27,12 @@ final class CommuteWidget implements WidgetInterface
         return 'widget/commute.html.twig';
     }
 
-    public function data(): CommuteView
+    /**
+     * Le trajet affiché dépend du moment ; le temps de parcours, lui, reflète toujours le trafic actuel.
+     */
+    public function data(\DateTimeImmutable $at): CommuteView
     {
-        $now = $this->clock->now();
-        $trip = $this->trips->findActiveAt($now);
+        $trip = $this->trips->findActiveAt($at);
         if (null === $trip) {
             return new CommuteView(null);
         }
@@ -48,6 +48,6 @@ final class CommuteWidget implements WidgetInterface
         $key = CacheKey::of('routes', $from->latitude, $from->longitude, $to->latitude, $to->longitude, (int) $trip->isAvoidTolls());
         $routes = $this->trafficCache->get($key, fn (): array => $this->travelTime->routes($from, $to, $trip->isAvoidTolls()));
 
-        return new CommuteView(new Commute($origin->getLabel(), $destination->getLabel(), $routes, $now));
+        return new CommuteView(new Commute($origin->getLabel(), $destination->getLabel(), $routes, $at));
     }
 }

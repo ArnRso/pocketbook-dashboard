@@ -33,18 +33,23 @@ class ScreenRenderer
     ) {
     }
 
-    public function html(): string
+    /**
+     * @param \DateTimeImmutable|null $at moment à simuler pour un aperçu (widgets affichés, heure) ; maintenant par défaut
+     */
+    public function html(?\DateTimeImmutable $at = null): string
     {
-        return $this->twig->render(self::TEMPLATE, $this->context(gotenberg: false));
+        return $this->twig->render(self::TEMPLATE, $this->context($at, gotenberg: false));
     }
 
     /**
+     * @param \DateTimeImmutable|null $at moment à simuler pour un aperçu ; maintenant par défaut
+     *
      * @return string image PNG en niveaux de gris
      */
-    public function png(): string
+    public function png(?\DateTimeImmutable $at = null): string
     {
         $builder = $this->gotenberg->html()
-            ->content(self::TEMPLATE, $this->context(gotenberg: true))
+            ->content(self::TEMPLATE, $this->context($at, gotenberg: true))
             ->width($this->width)
             ->height($this->height)
             ->format(ScreenshotFormat::Png);
@@ -66,8 +71,8 @@ class ScreenRenderer
     /**
      * @return array{generatedAt: \DateTimeImmutable, gotenberg: bool}
      */
-    private function context(bool $gotenberg): array
+    private function context(?\DateTimeImmutable $at, bool $gotenberg): array
     {
-        return ['generatedAt' => $this->clock->now(), 'gotenberg' => $gotenberg];
+        return ['generatedAt' => $at ?? $this->clock->now(), 'gotenberg' => $gotenberg];
     }
 }

@@ -2,11 +2,20 @@
 
 {% block content_title 'Aperçu' %}
 
+{% form_theme form 'bootstrap_5_layout.html.twig' %}
+
 {% block main %}
+    {% set query = at ? {at: at|date(constant('App\\Screen\\PreviewQuery::DATE_FORMAT'))} : {} %}
+
+    {{ form_start(form, {attr: {class: 'd-flex align-items-end gap-3 mb-3'}}) }}
+        {{ form_row(form.at) }}
+        {{ form_row(form.preview) }}
+    {{ form_end(form) }}
+
     <p>
-        Voici l'image telle que les liseuses la reçoivent.
-        La <a href="{{ path('app_preview') }}" target="_blank">version HTML</a> est pratique pour travailler la mise en page.
+        Voici l'image telle que les liseuses la {{ at ? 'recevraient le ' ~ at|format_datetime(pattern: "EEEE d MMMM 'à' HH:mm", locale: 'fr') : 'reçoivent' }}.
+        La <a href="{{ path('app_preview', query) }}" target="_blank">version HTML</a> est pratique pour travailler la mise en page.
     </p>
-    <img src="{{ path('app_preview_image') }}" alt="Aperçu du dashboard"
+    <img src="{{ path('app_preview_image', query) }}" alt="Aperçu du dashboard"
          style="max-width: 100%; max-height: 80vh; border: 1px solid var(--border-color); border-radius: 8px">
 {% endblock %}

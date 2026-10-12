@@ -43,8 +43,8 @@ final class WidgetCacheTest extends KernelTestCase
             new ArrayAdapter(),
         );
 
-        $first = $widget->data();
-        $second = $widget->data();
+        $first = $widget->data(new \DateTimeImmutable('2026-10-12 13:20'));
+        $second = $widget->data(new \DateTimeImmutable('2026-10-12 13:25'));
 
         self::assertSame(1, $http->getRequestsCount());
         self::assertSame('Maison', $second->place);
@@ -67,14 +67,16 @@ final class WidgetCacheTest extends KernelTestCase
             self::getContainer()->get(TripRepository::class),
             $travelTime,
             new ArrayAdapter(),
-            new MockClock('2026-10-12 08:00:00', 'Europe/Paris'),
         );
+        $at = new \DateTimeImmutable('2026-10-12 08:00');
 
-        $commute = $widget->data()->commute;
-        $widget->data();
+        $commute = $widget->data($at)->commute;
+        $widget->data($at);
         // Changer l'option péages change d'itinéraire : nouvel appel
         $trip->setAvoidTolls(true);
-        $widget->data();
+        $widget->data($at);
+        // Hors de la plage horaire : aucun trajet, donc aucun appel
+        self::assertNull($widget->data(new \DateTimeImmutable('2026-10-12 21:00'))->commute);
 
         self::assertNotNull($commute);
         self::assertSame('Maison', $commute->origin);
@@ -89,12 +91,12 @@ final class WidgetCacheTest extends KernelTestCase
             ->setStartTime(new \DateTimeImmutable('06:00'))->setEndTime(new \DateTimeImmutable('20:00'));
         $trips = self::createStub(TripRepository::class);
         $trips->method('findActiveAt')->willReturn($trip);
-        $widget = new CommuteWidget($trips, self::createStub(TravelTimeProviderInterface::class), new ArrayAdapter(), new MockClock('2026-10-12 08:00:00'));
+        $widget = new CommuteWidget($trips, self::createStub(TravelTimeProviderInterface::class), new ArrayAdapter());
 
         $this->expectException(WidgetNotConfiguredException::class);
         $this->expectExceptionMessageIs('Coordonnées manquantes pour le trajet Maison → ');
 
-        $widget->data();
+        $widget->data(new \DateTimeImmutable('2026-10-12 08:00'));
     }
 
     /**
