@@ -86,6 +86,14 @@ class Dashboard
         return array_values($this->tiles->filter(static fn (Tile $tile): bool => $tile->isVisibleAt($moment))->toArray());
     }
 
+    /**
+     * @return list<Tile>
+     */
+    public function tilesHiddenAt(\DateTimeImmutable $moment): array
+    {
+        return array_values($this->tiles->filter(static fn (Tile $tile): bool => !$tile->isVisibleAt($moment))->toArray());
+    }
+
     public function __toString(): string
     {
         return $this->name;

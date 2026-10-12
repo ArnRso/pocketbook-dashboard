@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Form;
+
+use App\Entity\Place;
+use App\Entity\Tile\CommuteTile;
+use App\Entity\Tile\Tile;
+use App\Entity\Tile\WeatherTile;
+use App\Entity\Trip;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+/**
+ * Réglages d'une tuile : ceux de son type (lieu, trajet…) et ses horaires d'affichage.
+ *
+ * @extends AbstractType<Tile>
+ */
+final class TileType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $tile = $options['data'] ?? null;
+
+        if ($tile instanceof WeatherTile) {
+            $builder->add('place', EntityType::class, [
+                'label' => 'Lieu',
+                'class' => Place::class,
+                'choice_label' => 'label',
+                'placeholder' => 'Choisir un lieu',
+            ]);
+        }
+        if ($tile instanceof CommuteTile) {
+            $builder->add('trip', EntityType::class, [
+                'label' => 'Trajet',
+                'class' => Trip::class,
+                'placeholder' => 'Choisir un trajet',
+            ]);
+        }
+
+        $builder
+            ->add('schedule', ScheduleType::class, ['label' => 'Affichage'])
+            ->add('save', SubmitType::class, [
+                'label' => 'Enregistrer',
+                'attr' => ['class' => 'btn-primary'],
+            ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults(['data_class' => Tile::class]);
+    }
+}

@@ -1,0 +1,110 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% form_theme form 'bootstrap_5_layout.html.twig' %}
+
+{% block head_javascript %}
+    {{ parent() }}
+    {{ importmap('grid-editor') }}
+{% endblock %}
+
+{% block head_stylesheets %}
+    {{ parent() }}
+    <style>
+        .grid-editor { max-width: 560px; }
+        /* Cases de la grille dessinées en fond, pour viser les emplacements libres */
+        .grid-editor .grid-stack {
+            background-color: var(--bs-tertiary-bg);
+            background-image:
+                linear-gradient(to right, var(--bs-border-color) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--bs-border-color) 1px, transparent 1px);
+            background-size: calc(100% / {{ columns }}) calc(100% / {{ rows }});
+            border: 1px solid var(--bs-border-color);
+        }
+        .grid-editor .grid-stack-item-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 6px 8px;
+            overflow: hidden;
+            background: var(--bs-body-bg);
+            border: 2px solid var(--bs-body-color);
+            border-radius: 8px;
+            font-size: .8rem;
+            line-height: 1.25;
+            cursor: move;
+        }
+        .grid-editor .tile-actions { display: flex; gap: 8px; margin-top: auto; }
+        .grid-editor .tile-actions button { padding: 0; border: 0; background: none; color: var(--bs-danger); }
+        .grid-preview { width: 100%; max-width: 560px; border: 1px solid var(--bs-border-color); border-radius: 8px; }
+    </style>
+{% endblock %}
+
+{% block content_title %}Grille — {{ dashboard.name }}{% endblock %}
+
+{% block page_actions %}
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa fa-plus"></i> Ajouter une tuile
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end tile-types">
+            {% for type in types %}
+                <li><a class="dropdown-item" href="{{ path('admin_dashboard_tile_new', {id: dashboard.id, widget: type.widget}) }}">{{ type.label }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
+
+{% block main %}
+    {% set parameters = {dashboard: dashboard.id, day: query.day, time: query.time}|filter(value => value is not null) %}
+
+    {{ form_start(form, {attr: {class: 'd-flex align-items-end gap-3 mb-3'}}) }}
+        {{ form_row(form.day) }}
+        {{ form_row(form.time) }}
+        {{ form_row(form.preview, {label: 'Afficher ce moment'}) }}
+    {{ form_end(form) }}
+
+    <p class="text-muted">
+        Tuiles affichées {{ at|format_datetime(pattern: "EEEE 'à' HH:mm", locale: 'fr') }}.
+        Glissez une tuile pour la déplacer, tirez son coin inférieur droit pour la redimensionner.
+    </p>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="grid-editor">
+                <div class="grid-stack" data-grid-editor data-columns="{{ columns }}" data-rows="{{ rows }}" data-csrf="{{ csrf_token('tile-layout') }}">
+                    {% for tile in visible %}
+                        <div class="grid-stack-item" gs-id="{{ tile.id }}" gs-x="{{ tile.column - 1 }}" gs-y="{{ tile.row - 1 }}" gs-w="{{ tile.width }}" gs-h="{{ tile.height }}"
+                             data-layout-url="{{ path('admin_dashboard_tile_layout', {id: dashboard.id, tile: tile.id}) }}">
+                            <div class="grid-stack-item-content">
+                                <strong>{{ tile.describe }}</strong>
+                                <span class="text-muted">{{ tile.schedule }}</span>
+                                <div class="tile-actions">
+                                    <a href="{{ path('admin_dashboard_tile_edit', {id: dashboard.id, tile: tile.id}) }}">Modifier</a>
+                                    <form method="post" action="{{ path('admin_dashboard_tile_delete', {id: dashboard.id, tile: tile.id}) }}" data-confirm="Supprimer la tuile « {{ tile.describe }} » ?">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('tile-delete-' ~ tile.id) }}">
+                                        <button type="submit">Supprimer</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <img class="grid-preview" src="{{ path('app_preview_image', parameters) }}" alt="Aperçu du dashboard" data-grid-preview>
+        </div>
+    </div>
+
+    {% if hidden %}
+        <h2 class="h5 mt-4">Masquées à ce moment</h2>
+        <ul>
+            {% for tile in hidden %}
+                <li>
+                    {{ tile.describe }} <span class="text-muted">({{ tile.schedule }})</span> —
+                    <a href="{{ path('admin_dashboard_tile_edit', {id: dashboard.id, tile: tile.id}) }}">Modifier</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

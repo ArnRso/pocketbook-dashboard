@@ -14,20 +14,23 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * Emplacement d'un widget sur la grille d'un dashboard, avec ses réglages et ses horaires d'affichage.
- * Un nouveau type de widget = une sous-classe (ses réglages), déclarée dans la DiscriminatorMap.
+ * Un nouveau type de widget = une sous-classe (ses réglages), déclarée dans TYPES.
  */
 #[ORM\Entity(repositoryClass: TileRepository::class)]
 #[ORM\InheritanceType('SINGLE_TABLE')]
 #[ORM\DiscriminatorColumn(name: 'widget', type: 'string', length: 32)]
-#[ORM\DiscriminatorMap([
-    ClockTile::WIDGET => ClockTile::class,
-    CurrentWeatherTile::WIDGET => CurrentWeatherTile::class,
-    RainTile::WIDGET => RainTile::class,
-    HourlyForecastTile::WIDGET => HourlyForecastTile::class,
-    CommuteTile::WIDGET => CommuteTile::class,
-])]
+#[ORM\DiscriminatorMap(self::TYPES)]
 abstract class Tile
 {
+    /** Types de tuiles, dans l'ordre proposé par l'éditeur : nom du widget => classe */
+    public const TYPES = [
+        ClockTile::WIDGET => ClockTile::class,
+        CurrentWeatherTile::WIDGET => CurrentWeatherTile::class,
+        RainTile::WIDGET => RainTile::class,
+        HourlyForecastTile::WIDGET => HourlyForecastTile::class,
+        CommuteTile::WIDGET => CommuteTile::class,
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

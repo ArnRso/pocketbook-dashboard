@@ -28,8 +28,8 @@ final class PreviewType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder
-            ->add('dashboard', ChoiceType::class, [
+        if (true === ($options['with_dashboard'] ?? true)) {
+            $builder->add('dashboard', ChoiceType::class, [
                 'label' => 'Dashboard',
                 'choices' => $this->dashboards->findBy([], ['name' => 'ASC']),
                 'choice_value' => static fn (Dashboard|int|null $dashboard): ?int => $dashboard instanceof Dashboard ? $dashboard->getId() : $dashboard,
@@ -38,7 +38,10 @@ final class PreviewType extends AbstractType
                 'setter' => static function (PreviewQuery $query, ?Dashboard $dashboard): void {
                     $query->dashboard = $dashboard?->getId();
                 },
-            ])
+            ]);
+        }
+
+        $builder
             ->add('day', ChoiceType::class, [
                 'label' => 'Jour',
                 'choices' => Weekday::choices(),
@@ -62,7 +65,10 @@ final class PreviewType extends AbstractType
             'data_class' => PreviewQuery::class,
             'method' => 'GET',
             'csrf_protection' => false,
+            // Dans l'éditeur de grille, le dashboard est déjà choisi
+            'with_dashboard' => true,
         ]);
+        $resolver->setAllowedTypes('with_dashboard', 'bool');
     }
 
     public function getBlockPrefix(): string

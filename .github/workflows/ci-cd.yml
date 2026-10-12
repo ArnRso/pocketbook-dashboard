@@ -56,6 +56,10 @@ jobs:
       - name: Warm dev cache (for PHPStan)
         run: php bin/console cache:warmup --env=dev
 
+      # Bibliothèques JavaScript de l'admin (éditeur de grille), nécessaires aux tests fonctionnels
+      - name: Install importmap assets
+        run: php bin/console importmap:install
+
       # Même commande qu'en local : ce qui passe sur ton poste passe ici.
       - name: Run quality checks and tests
         run: composer qa

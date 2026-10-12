@@ -1,0 +1,25 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% form_theme form 'bootstrap_5_layout.html.twig' %}
+
+{% block content_title title %}
+
+{% block main %}
+    <div style="max-width: 640px">
+        {{ form_start(form) }}
+            {{ form_errors(form) }}
+            {% if form.place is defined %}{{ form_row(form.place) }}{% endif %}
+            {% if form.trip is defined %}{{ form_row(form.trip) }}{% endif %}
+            <fieldset class="mb-3">
+                <legend class="h6">{{ form.schedule.vars.label }}</legend>
+                {{ form_row(form.schedule.weekdays, {label_attr: {class: 'checkbox-inline'}}) }}
+                <div class="d-flex gap-3">
+                    {{ form_row(form.schedule.startTime) }}
+                    {{ form_row(form.schedule.endTime) }}
+                </div>
+            </fieldset>
+            {{ form_row(form.save) }}
+        {{ form_end(form) }}
+        <a href="{{ path('admin_dashboard_grid', {id: dashboard.id}) }}">Retour à la grille</a>
+    </div>
+{% endblock %}

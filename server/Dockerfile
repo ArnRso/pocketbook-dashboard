@@ -61,6 +61,8 @@ COPY . .
 
 RUN composer dump-autoload --no-dev --classmap-authoritative \
     && php bin/console assets:install public \
+    && php bin/console importmap:install \
+    && php bin/console asset-map:compile \
     && php bin/console cache:warmup \
     && rm -rf var/log/*
 
