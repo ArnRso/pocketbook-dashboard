@@ -6,17 +6,23 @@ namespace App\Tests\Controller;
 
 use App\Controller\DashboardController;
 use App\Entity\Dashboard;
+use App\Entity\Reminder;
+use App\Entity\ReminderWindow;
 use App\Entity\Tile\ClockTile;
+use App\Entity\Tile\ReminderTile;
 use App\Entity\Tile\WeatherTile;
+use App\Entity\Weekday;
 use App\Repository\DashboardRepository;
 use App\Screen\PreviewMoment;
 use App\Screen\PreviewQuery;
+use App\Screen\RenderedTile;
 use App\Screen\ScreenRenderer;
 use App\Weather\ForecastProvider;
 use App\Widget\AbstractWeatherWidget;
 use App\Widget\CacheKey;
 use App\Widget\ClockWidget;
 use App\Widget\CommuteWidget;
+use App\Widget\ReminderWidget;
 use App\Widget\WidgetRenderer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -24,6 +30,8 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 
 #[CoversClass(DashboardController::class)]
 #[CoversClass(ScreenRenderer::class)]
+#[CoversClass(RenderedTile::class)]
+#[CoversClass(ReminderWidget::class)]
 #[CoversClass(PreviewQuery::class)]
 #[CoversClass(PreviewMoment::class)]
 #[CoversClass(DashboardRepository::class)]
@@ -193,6 +201,35 @@ final class PreviewTest extends FunctionalTestCase
         $this->client->request('GET', '/preview?day=7');
         self::assertSelectorTextContains('.clock-date', 'Dimanche 18 octobre');
         self::assertSelectorTextContains('.clock-meta', 'Mis à jour à 13:20');
+    }
+
+    public function testRemindersTileOnlyAppearsDuringAReminder(): void
+    {
+        $reminder = (new Reminder())->setText('Sortir la poubelle verte')->addWindow((new ReminderWindow())
+            ->setStartDay(Weekday::Sunday)
+            ->setStartTime(new \DateTimeImmutable('16:00'))
+            ->setEndDay(Weekday::Monday)
+            ->setEndTime(new \DateTimeImmutable('09:00')));
+        $dashboard = (new Dashboard())
+            ->setName('Entrée')
+            ->addTile((new ClockTile())->place(1, 1, 12, 2))
+            ->addTile((new ReminderTile())->place(1, 3, 12, 2));
+        $this->entityManager()->persist($reminder);
+        $this->entityManager()->persist($dashboard);
+        $this->entityManager()->flush();
+        $this->logIn();
+
+        $this->client->request('GET', \sprintf('/preview?dashboard=%d&day=7&time=17:00', (int) $dashboard->getId()));
+
+        self::assertSelectorCount(2, '.tile');
+        self::assertSelectorTextSame('.tile-reminders .tile-title', 'Rappel');
+        self::assertSelectorTextSame('.tile-reminders .reminder-text', 'Sortir la poubelle verte');
+        self::assertSelectorTextSame('.tile-reminders .reminder-until', 'jusqu\'à lundi 09:00');
+
+        $this->client->request('GET', \sprintf('/preview?dashboard=%d&day=1&time=10:00', (int) $dashboard->getId()));
+
+        self::assertSelectorCount(1, '.tile');
+        self::assertSelectorNotExists('.tile-reminders');
     }
 
     #[DataProvider('invalidQueries')]

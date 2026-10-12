@@ -19,6 +19,9 @@
     <div style="max-width: 720px">
         {{ form_start(form) }}
             {{ form_errors(form) }}
+            {% if form.vars.data.widget == constant('App\\Entity\\Tile\\ReminderTile::WIDGET') %}
+                <p class="form-text">Les rappels se gèrent dans la rubrique <a href="{{ ea_url().setController('App\\Controller\\Admin\\ReminderCrudController') }}">Rappels</a>. La tuile n'apparaît à l'écran que lorsqu'un rappel est en cours.</p>
+            {% endif %}
             {% if form.place is defined %}{{ form_row(form.place) }}{% endif %}
             {% if form.trip is defined %}{{ form_row(form.trip) }}{% endif %}
             {% if form.days is defined %}<div style="width: 14rem">{{ form_row(form.days) }}</div>{% endif %}

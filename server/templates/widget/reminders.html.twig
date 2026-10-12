@@ -1,0 +1,11 @@
+<div class="widget reminders">
+    <div class="tile-title">Rappel{{ data.reminders|length > 1 ? 's' }}</div>
+    <ul class="reminder-list">
+        {% for reminder in data.reminders %}
+            <li>
+                <b class="reminder-text">{{ reminder.text }}</b>
+                <span class="reminder-until muted">jusqu'à {{ reminder.until|format_datetime(pattern: 'EEEE HH:mm', locale: 'fr') }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+</div>

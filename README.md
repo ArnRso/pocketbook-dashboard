@@ -53,7 +53,8 @@ risqué). `composer fix` corrige automatiquement le style.
 - Contrôleurs et commandes très fins : toute la logique est dans des services.
 - Pas de tableaux bruts : les réponses des API sont désérialisées dans des DTO par le Serializer.
 - Les services lèvent des exceptions ; le rendu des widgets attrape celles qui sont affichables
-  (`DisplayableException`) pour qu'une panne de Waze n'empêche pas d'afficher la météo.
+  (`DisplayableException`) pour qu'une panne de Waze n'empêche pas d'afficher la météo. Un widget qui
+  n'a rien à montrer lève `NothingToShowException` : sa tuile est retirée de l'écran.
 - Un nouveau type de tuile = une sous-classe de `Tile` (ses réglages) déclarée dans `Tile::TYPES`, un
   widget `#[AsTaggedItem(XxxTile::WIDGET)]` implémentant `WidgetInterface`, et son template. Les tailles
   du template s'expriment en proportion de la tuile (`cqw`, `cqh`) pour s'adapter à toutes les tailles.
@@ -105,7 +106,8 @@ La CI exécute le même `make qa` et publie l'application de `main`, zippée, da
 ## Administration
 
 - **Dashboards** : un dashboard est une grille de 12 × 16 cases où se placent des tuiles (date et heure,
-  météo actuelle, pluie, prévisions heure par heure, trajet). « Éditer la grille » permet de les ajouter,
+  météo actuelle, pluie, prévisions heure par heure, trajet, fermetures du pont Chaban-Delmas, rappels).
+  « Éditer la grille » permet de les ajouter,
   de les glisser et de les redimensionner à la souris, avec l'aperçu réel à côté. Chaque tuile a ses
   horaires d'affichage : deux tuiles peuvent occuper la même place si leurs horaires ne se recoupent pas
   (le trajet aller le matin, le retour le soir). L'éditeur montre les tuiles visibles au jour et à l'heure
@@ -113,6 +115,9 @@ La CI exécute le même `make qa` et publie l'application de `main`, zippée, da
 - **Utilisateurs** : uniquement en ligne de commande. `app:user:create <identifiant>` génère et affiche
   un mot de passe ; relancée sur un utilisateur existant, elle en régénère un après confirmation.
 - **Lieux et trajets** : dans l'admin. Un lieu sans coordonnées est géocodé à partir de son adresse.
+- **Rappels** : un texte et une ou plusieurs plages hebdomadaires, qui peuvent s'étendre sur plusieurs
+  jours (du dimanche 16:00 au lundi 09:00). La tuile « Rappels » liste ceux en cours et disparaît quand
+  il n'y en a aucun.
 - **Liseuses** : dans l'admin, chaque liseuse affiche le dashboard qui lui est assigné. « Générer une
   clé » affiche une seule fois la clé à saisir dans la liseuse ; seule son empreinte SHA-256 est stockée,
   et désactiver la liseuse lui retire l'accès.

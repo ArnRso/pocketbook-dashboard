@@ -6,6 +6,7 @@ namespace App\Tests\Widget;
 
 use App\Entity\Tile\ClockTile;
 use App\Entity\Tile\Tile;
+use App\Widget\NothingToShowException;
 use App\Widget\WidgetInterface;
 use App\Widget\WidgetNotConfiguredException;
 use App\Widget\WidgetRenderer;
@@ -33,6 +34,13 @@ final class WidgetRendererTest extends TestCase
         $widget = new FakeWidget(static fn (): never => throw new WidgetNotConfiguredException('Rien à afficher'));
 
         self::assertSame('Date et heure indisponible : Rien à afficher', $this->renderer('clock', $widget)->render(new ClockTile(), new \DateTimeImmutable('2026-10-12 08:00')));
+    }
+
+    public function testWidgetWithNothingToShowIsNotRendered(): void
+    {
+        $widget = new FakeWidget(static fn (): never => throw new NothingToShowException('Aucun rappel en cours.'));
+
+        self::assertNull($this->renderer('clock', $widget)->render(new ClockTile(), new \DateTimeImmutable('2026-10-12 08:00')));
     }
 
     public function testUnexpectedErrorsAreNotHidden(): void

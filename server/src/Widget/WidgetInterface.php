@@ -23,7 +23,8 @@ interface WidgetInterface
      *
      * @param \DateTimeImmutable $at moment affiché : l'heure courante, ou celle choisie pour un aperçu
      *
-     * @throws DisplayableException quand le widget ne peut pas être affiché pour une raison connue
+     * @throws DisplayableException   quand le widget ne peut pas être affiché pour une raison connue
+     * @throws NothingToShowException quand la tuile doit disparaître de l'écran à ce moment
      */
     public function data(Tile $tile, \DateTimeImmutable $at): object;
 }

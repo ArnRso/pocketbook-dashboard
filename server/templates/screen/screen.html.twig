@@ -156,14 +156,22 @@
             .chaban-day { width: auto; }
             .chaban-reason { display: none; }
         }
+
+        /* Rappels */
+        .reminder-list { list-style: none; overflow: hidden; font-size: clamp(22px, min(26cqh, 6cqw), 56px); }
+        .reminder-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .6em; padding: .1em 0; }
+        .reminder-list li + li { border-top: 2px solid #888; }
+        .reminder-text { font-weight: 800; }
+        .reminder-until { font-size: .6em; }
     </style>
 </head>
 <body>
     {% if dashboard %}
         <div class="grid">
-            {% for tile in tiles %}
+            {% for rendered in tiles %}
+                {% set tile = rendered.tile %}
                 <div class="tile tile-{{ tile.widget }}" style="grid-column: {{ tile.column }} / span {{ tile.width }}; grid-row: {{ tile.row }} / span {{ tile.height }}">
-                    {{ widget(tile, generatedAt) }}
+                    {{ rendered.html|raw }}
                 </div>
             {% endfor %}
         </div>

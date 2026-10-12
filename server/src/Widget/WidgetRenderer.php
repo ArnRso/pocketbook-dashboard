@@ -8,7 +8,6 @@ use App\Entity\Tile\Tile;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireLocator;
 use Symfony\Component\DependencyInjection\ServiceLocator;
-use Twig\Attribute\AsTwigFunction;
 use Twig\Environment;
 
 /**
@@ -27,13 +26,17 @@ class WidgetRenderer
     ) {
     }
 
-    #[AsTwigFunction('widget', isSafe: ['html'])]
-    public function render(Tile $tile, \DateTimeImmutable $at): string
+    /**
+     * @return string|null HTML du widget, null s'il n'a rien à afficher
+     */
+    public function render(Tile $tile, \DateTimeImmutable $at): ?string
     {
         $widget = $this->widgets->get($tile->widget());
 
         try {
             return $this->twig->render($widget->template(), ['data' => $widget->data($tile, $at), 'tile' => $tile]);
+        } catch (NothingToShowException) {
+            return null;
         } catch (DisplayableException $e) {
             $this->logger->warning('Tuile « {tile} » indisponible : {message}', ['tile' => $tile->describe(), 'message' => $e->getMessage(), 'exception' => $e]);
 

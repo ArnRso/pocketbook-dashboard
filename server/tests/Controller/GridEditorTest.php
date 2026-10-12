@@ -41,7 +41,7 @@ final class GridEditorTest extends FunctionalTestCase
         $hourly = $this->item($crawler, 'Prévisions heure par heure · Maison');
         self::assertSame(['0', '7', '12', '4'], [$hourly->attr('gs-x'), $hourly->attr('gs-y'), $hourly->attr('gs-w'), $hourly->attr('gs-h')]);
         self::assertSelectorTextContains('.grid-stack', 'Tous les jours, 06:00–20:00');
-        self::assertSelectorCount(6, '.tile-types .dropdown-item');
+        self::assertSelectorCount(\count(Tile::TYPES), '.tile-types .dropdown-item');
         self::assertSelectorExists(\sprintf('img[src="/preview.png?dashboard=%d"]', (int) $dashboard->getId()));
 
         $this->client->request('GET', $this->url($dashboard, '/grid?time=21:00'));

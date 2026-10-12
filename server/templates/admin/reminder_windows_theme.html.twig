@@ -1,0 +1,26 @@
+{# Une plage de rappel sur une ligne : « Du [jour] [heure] au [jour] [heure] » #}
+{% block _Reminder_windows_entry_row %}
+    <div class="field-collection-item {{ not form.vars.valid ? 'is-invalid' }}">
+        {# Le JavaScript d'EasyAdmin attend la structure d'un accordéon : il est ici toujours ouvert, sans en-tête #}
+        <div class="accordion-item border-0">
+            <button class="accordion-button d-none" type="button"></button>
+            <div class="accordion-collapse show">
+                <div class="d-flex flex-wrap align-items-center gap-2 p-2">
+                    <span>Du</span>
+                    {{ form_widget(form.startDay, {attr: {style: 'width: 9rem'}}) }}
+                    {{ form_widget(form.startTime, {attr: {style: 'width: 6.5rem'}}) }}
+                    <span>au</span>
+                    {{ form_widget(form.endDay, {attr: {style: 'width: 9rem'}}) }}
+                    {{ form_widget(form.endTime, {attr: {style: 'width: 6.5rem'}}) }}
+                    {% if form_parent(form).vars.allow_delete|default(false) %}
+                        <button type="button" class="btn btn-link btn-link-danger field-collection-delete-button position-static ms-auto" title="{{ 'action.remove_item'|trans({}, 'EasyAdminBundle') }}">
+                            <twig:ea:Icon name="internal:delete" />
+                        </button>
+                    {% endif %}
+                </div>
+                {{ form_errors(form) }}
+                {% for child in form %}{{ form_errors(child) }}{% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

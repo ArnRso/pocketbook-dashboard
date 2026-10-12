@@ -6,6 +6,7 @@ namespace App\Screen;
 
 use App\Entity\Dashboard;
 use App\Entity\Tile\Tile;
+use App\Widget\WidgetRenderer;
 use Sensiolabs\GotenbergBundle\Enumeration\ScreenshotFormat;
 use Sensiolabs\GotenbergBundle\GotenbergScreenshotInterface;
 use Sensiolabs\GotenbergBundle\Processor\InMemoryProcessor;
@@ -28,6 +29,7 @@ class ScreenRenderer
         private readonly GotenbergScreenshotInterface $gotenberg,
         private readonly Environment $twig,
         private readonly ClockInterface $clock,
+        private readonly WidgetRenderer $widgets,
         #[Autowire('%env(int:SCREEN_WIDTH)%')]
         private readonly int $width,
         #[Autowire('%env(int:SCREEN_HEIGHT)%')]
@@ -75,7 +77,7 @@ class ScreenRenderer
     /**
      * Contexte du template Twig.
      *
-     * @return array{generatedAt: \DateTimeImmutable, dashboard: ?Dashboard, tiles: list<Tile>, gotenberg: bool}
+     * @return array{generatedAt: \DateTimeImmutable, dashboard: ?Dashboard, tiles: list<RenderedTile>, gotenberg: bool}
      */
     private function context(?Dashboard $dashboard, ?\DateTimeImmutable $at, bool $gotenberg): array
     {
@@ -84,8 +86,28 @@ class ScreenRenderer
         return [
             'generatedAt' => $moment,
             'dashboard' => $dashboard,
-            'tiles' => $dashboard?->tilesVisibleAt($moment) ?? [],
+            'tiles' => $this->render($dashboard?->tilesVisibleAt($moment) ?? [], $moment),
             'gotenberg' => $gotenberg,
         ];
+    }
+
+    /**
+     * Rend les widgets des tuiles, sans celles qui n'ont rien à afficher.
+     *
+     * @param list<Tile> $tiles
+     *
+     * @return list<RenderedTile>
+     */
+    private function render(array $tiles, \DateTimeImmutable $moment): array
+    {
+        $rendered = [];
+        foreach ($tiles as $tile) {
+            $html = $this->widgets->render($tile, $moment);
+            if (null !== $html) {
+                $rendered[] = new RenderedTile($tile, $html);
+            }
+        }
+
+        return $rendered;
     }
 }

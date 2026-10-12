@@ -30,6 +30,7 @@ abstract class Tile
         HourlyForecastTile::WIDGET => HourlyForecastTile::class,
         CommuteTile::WIDGET => CommuteTile::class,
         ChabanTile::WIDGET => ChabanTile::class,
+        ReminderTile::WIDGET => ReminderTile::class,
     ];
 
     #[ORM\Id]

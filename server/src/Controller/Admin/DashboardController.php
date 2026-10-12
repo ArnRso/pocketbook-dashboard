@@ -58,6 +58,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkTo(DashboardCrudController::class, 'Dashboards', 'fa fa-table-cells');
         yield MenuItem::linkTo(PlaceCrudController::class, 'Lieux', 'fa fa-location-dot');
         yield MenuItem::linkTo(TripCrudController::class, 'Trajets', 'fa fa-car');
+        yield MenuItem::linkTo(ReminderCrudController::class, 'Rappels', 'fa fa-bell');
         yield MenuItem::linkTo(DeviceCrudController::class, 'Liseuses', 'fa fa-tablet-screen-button');
         yield MenuItem::section();
         yield MenuItem::linkToLogout('Déconnexion', 'fa fa-right-from-bracket');

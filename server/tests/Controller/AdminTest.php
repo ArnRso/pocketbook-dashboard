@@ -8,12 +8,16 @@ use App\Controller\Admin\DashboardController;
 use App\Controller\Admin\DashboardCrudController;
 use App\Controller\Admin\DeviceCrudController;
 use App\Controller\Admin\PlaceCrudController;
+use App\Controller\Admin\ReminderCrudController;
 use App\Controller\Admin\TripCrudController;
 use App\Entity\Place;
+use App\Entity\Reminder;
 use App\EventSubscriber\GeocodePlaceSubscriber;
 use App\Form\PreviewType;
+use App\Form\ReminderWindowType;
 use App\Repository\DeviceRepository;
 use App\Repository\PlaceRepository;
+use App\Repository\ReminderRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -22,6 +26,8 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 #[CoversClass(DashboardCrudController::class)]
 #[CoversClass(PlaceCrudController::class)]
 #[CoversClass(TripCrudController::class)]
+#[CoversClass(ReminderCrudController::class)]
+#[CoversClass(ReminderWindowType::class)]
 #[CoversClass(DeviceCrudController::class)]
 #[CoversClass(GeocodePlaceSubscriber::class)]
 #[CoversClass(PreviewType::class)]
@@ -51,6 +57,8 @@ final class AdminTest extends FunctionalTestCase
         yield 'nouveau lieu' => ['/admin/place/new', 'Ajouter un lieu'];
         yield 'trajets' => ['/admin/trip', 'Trajets'];
         yield 'nouveau trajet' => ['/admin/trip/new', 'Ajouter un trajet'];
+        yield 'rappels' => ['/admin/reminder', 'Rappels'];
+        yield 'nouveau rappel' => ['/admin/reminder/new', 'Ajouter un rappel'];
         yield 'liseuses' => ['/admin/device', 'Liseuses'];
         yield 'nouvelle liseuse' => ['/admin/device/new', 'Ajouter une liseuse'];
     }
@@ -179,6 +187,44 @@ final class AdminTest extends FunctionalTestCase
 
         self::assertSelectorTextContains('.alert-danger', 'Adresse introuvable : "Nulle part". Renseigne la latitude et la longitude à la main.');
         self::assertNull($this->findPlace('Nulle part')->getCoordinates());
+    }
+
+    public function testReminderIsCreatedWithWindowsSpanningSeveralDays(): void
+    {
+        $this->logIn();
+
+        $crawler = $this->client->request('GET', '/admin/reminder/new');
+        // Les plages sont ajoutées en JavaScript dans le navigateur : on les envoie directement
+        $this->client->request('POST', $crawler->selectButton('Créer')->form()->getUri(), ['Reminder' => [
+            'text' => 'Sortir la poubelle verte',
+            'windows' => [
+                ['startDay' => '7', 'startTime' => '16:00', 'endDay' => '1', 'endTime' => '09:00'],
+                ['startDay' => '3', 'startTime' => '18:00', 'endDay' => '3', 'endTime' => '20:30'],
+            ],
+            'enabled' => '1',
+            '_token' => $crawler->filter('input[name="Reminder[_token]"]')->attr('value'),
+        ]]);
+
+        self::assertResponseRedirects();
+        $reminder = static::getContainer()->get(ReminderRepository::class)->findOneBy(['text' => 'Sortir la poubelle verte']);
+        self::assertInstanceOf(Reminder::class, $reminder);
+        self::assertSame(['Dim 16:00 → Lun 09:00', 'Mer 18:00 → Mer 20:30'], array_map(strval(...), $reminder->getWindows()->toArray()));
+        self::assertTrue($reminder->isEnabled());
+
+        $this->client->request('GET', '/admin/reminder');
+
+        self::assertSelectorTextSame('td[data-column="windows"]', 'Dim 16:00 → Lun 09:00, Mer 18:00 → Mer 20:30');
+    }
+
+    public function testReminderWithoutWindowIsRejected(): void
+    {
+        $this->logIn();
+
+        $this->client->request('GET', '/admin/reminder/new');
+        $this->client->submitForm('Créer', ['Reminder[text]' => 'Sortir la poubelle verte']);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('body', 'Ajoute au moins une plage.');
     }
 
     private function findPlace(string $label): Place
