@@ -35,5 +35,7 @@ extern int pbd_failures;
 
 void test_config(void);
 void test_headers(void);
+void test_sha256(void);
+void test_update(void);
 
 #endif

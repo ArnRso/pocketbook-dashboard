@@ -79,6 +79,14 @@ token = pbd_…
 
 En cas de problème, le journal est dans `system/pocketbook-dashboard.log`.
 
+### Mise à jour automatique
+
+Une fois par jour, après un rafraîchissement réussi, l'application compare sa version à celle de la release
+`device-latest` (`version.txt` : commit et SHA-256). Si elle diffère, elle télécharge le nouveau binaire à côté
+du sien, vérifie son empreinte et que c'est bien un exécutable ARM, le substitue puis redémarre dessus. La
+version installée et une vérification immédiate sont accessibles depuis le menu. Les versions compilées en
+local (`dev`) ne se mettent jamais à jour d'elles-mêmes.
+
 ### Compilation
 
 La chaîne de compilation est une image Docker contenant le

@@ -123,8 +123,9 @@ jobs:
         run: docker build --platform linux/amd64 -t pocketbook-dashboard-sdk .
 
       # Même commande qu'en local (make docker-qa), avec AddressSanitizer : la CI tourne en x86 natif.
+      # Lancée sous l'utilisateur du runner pour que les étapes suivantes puissent écrire dans dist/.
       - name: Run quality checks, tests and cross-compilation
-        run: docker run --rm -v "$PWD":/src pocketbook-dashboard-sdk make qa VERSION="${GITHUB_SHA::7}"
+        run: docker run --rm --user "$(id -u):$(id -g)" -v "$PWD":/src pocketbook-dashboard-sdk make qa VERSION="${GITHUB_SHA::7}"
 
       - name: Upload application
         uses: actions/upload-artifact@v7
@@ -133,18 +134,24 @@ jobs:
           path: device/dist/pocketbook-dashboard.app
           if-no-files-found: error
 
-      # La dernière version de main est toujours téléchargeable depuis la release « device-latest ».
-      # GitHub refuse l'extension .app pour les fichiers de release : l'application est publiée zippée.
+      # La dernière version de main est publiée dans la release « device-latest » :
+      # - pocketbook-dashboard + version.txt (version et SHA-256) pour la mise à jour automatique des liseuses ;
+      # - pocketbook-dashboard.zip pour une installation manuelle (GitHub refuse l'extension .app).
       - name: Publish application
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          cp dist/pocketbook-dashboard.app dist/pocketbook-dashboard
+          printf '%s\n%s\n' "${GITHUB_SHA::7}" "$(sha256sum dist/pocketbook-dashboard | cut -d' ' -f1)" > dist/version.txt
           (cd dist && zip -q pocketbook-dashboard.zip pocketbook-dashboard.app)
           gh release view device-latest > /dev/null 2>&1 \
             || gh release create device-latest --prerelease --title "Application liseuse" --notes "Dernière version de main."
-          gh release upload device-latest dist/pocketbook-dashboard.zip --clobber
-          gh release edit device-latest --notes "Dernière version de main : ${GITHUB_SHA::7}. Décompresser pocketbook-dashboard.zip et copier pocketbook-dashboard.app dans le dossier applications de la liseuse."
+          # Une liseuse qui lirait version.txt pendant la publication obtiendrait une empreinte qui ne correspond pas
+          # au binaire téléchargé : elle refuserait la mise à jour et réessaierait plus tard.
+          gh release upload device-latest dist/pocketbook-dashboard dist/pocketbook-dashboard.zip --clobber
+          gh release upload device-latest dist/version.txt --clobber
+          gh release edit device-latest --notes "Dernière version de main : ${GITHUB_SHA::7}. Les liseuses se mettent à jour automatiquement ; pour une installation manuelle, décompresser pocketbook-dashboard.zip et copier pocketbook-dashboard.app dans le dossier applications."
 
   security-scan:
     name: Security Scan

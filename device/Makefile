@@ -13,8 +13,8 @@ CROSS_CC := $(SDK)/usr/bin/arm-obreey-linux-gnueabi-gcc
 WARNINGS := -Wall -Wextra -Wpedantic -Werror -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -Wmissing-prototypes
 CFLAGS := -std=c11 -D_DEFAULT_SOURCE -O2 $(WARNINGS) -DPBD_VERSION='"$(VERSION)"'
 
-CORE := src/config.c src/headers.c
-SOURCES := $(CORE) src/client.c src/main.c
+CORE := src/config.c src/headers.c src/sha256.c src/update.c
+SOURCES := $(CORE) src/http.c src/client.c src/updater.c src/main.c
 HEADERS := $(wildcard src/*.h)
 TESTS := $(wildcard tests/*.c)
 FORMATTED := $(wildcard src/*.[ch] tests/*.[ch])

@@ -1,7 +1,9 @@
 #include "client.h"
 #include "config.h"
+#include "updater.h"
 
 #include <curl/curl.h>
+#include <errno.h>
 #include <inkview.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -9,6 +11,11 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <unistd.h>
+
+#ifndef PBD_VERSION
+#define PBD_VERSION "dev"
+#endif
 
 #define CONFIG_FILE CONFIGPATH "/pocketbook-dashboard.cfg"
 #define LOG_FILE USERDATA "/pocketbook-dashboard.log"
@@ -16,6 +23,7 @@
 
 #define DEFAULT_REFRESH_SECONDS 300
 #define RETRY_SECONDS 60
+#define UPDATE_CHECK_SECONDS 86400
 #define LOG_MAX_BYTES 65536
 #define BANNER_HEIGHT 110
 #define TEXT_MARGIN 60
@@ -24,6 +32,7 @@ enum {
     MENU_REFRESH = 1,
     MENU_SERVER,
     MENU_TOKEN,
+    MENU_UPDATE,
     MENU_EXIT,
 };
 
@@ -33,12 +42,15 @@ static ibitmap *screen;
 static ifont *title_font;
 static ifont *text_font;
 static char keyboard_buffer[PBD_URL_MAX > PBD_TOKEN_MAX ? PBD_URL_MAX : PBD_TOKEN_MAX];
+static char menu_title[] = "PocketBook Dashboard · " PBD_VERSION;
+static time_t last_update_check;
 
 static imenu menu[] = {
-    { ITEM_HEADER, 0, "PocketBook Dashboard", NULL },
+    { ITEM_HEADER, 0, menu_title, NULL },
     { ITEM_ACTIVE, MENU_REFRESH, "Rafraîchir maintenant", NULL },
     { ITEM_ACTIVE, MENU_SERVER, "Adresse du serveur…", NULL },
     { ITEM_ACTIVE, MENU_TOKEN, "Clé d'accès…", NULL },
+    { ITEM_ACTIVE, MENU_UPDATE, "Rechercher une mise à jour", NULL },
     { ITEM_SEPARATOR, 0, NULL, NULL },
     { ITEM_ACTIVE, MENU_EXIT, "Quitter", NULL },
     { 0, 0, NULL, NULL },
@@ -166,6 +178,73 @@ static void schedule_refresh(int seconds)
     SetHardTimer("pbd_refresh", refresh, seconds * 1000);
 }
 
+/* Relance l'application sur sa nouvelle version ; si c'est impossible, elle sera utilisée au prochain lancement. */
+static void restart(const char *app_path)
+{
+    log_line("Redémarrage sur la nouvelle version");
+    ClearTimer(refresh);
+    char *arguments[] = { (char *)app_path, NULL };
+    execv(app_path, arguments);
+
+    log_line("Redémarrage impossible : %s", strerror(errno));
+    show_message("Mise à jour installée", "Relancez l'application pour utiliser la nouvelle version.");
+}
+
+/* Le Wi-Fi doit être connecté. interactive : l'utilisateur l'a demandée depuis le menu et attend une réponse. */
+static void check_for_update(int interactive)
+{
+    last_update_check = time(NULL);
+
+    pbd_manifest manifest;
+    pbd_http_result result;
+    if (pbd_updater_check(TEMPDIR, &manifest, &result) != 0) {
+        log_line("Vérification de mise à jour impossible : %s", result.error);
+        if (interactive) {
+            Message(ICON_ERROR, "Mise à jour impossible", result.error, 5000);
+        }
+        return;
+    }
+
+    if (!pbd_update_available(PBD_VERSION, &manifest)) {
+        log_line("Application à jour (%s)", PBD_VERSION);
+        if (interactive) {
+            Message(ICON_INFORMATION, "Mise à jour", "L'application est à jour.", 3000);
+        }
+        return;
+    }
+
+    char app_path[512];
+    ssize_t length = readlink("/proc/self/exe", app_path, sizeof(app_path) - 1);
+    if (length <= 0) {
+        log_line("Emplacement de l'application introuvable : %s", strerror(errno));
+        return;
+    }
+    app_path[length] = '\0';
+
+    log_line("Installation de la version %s dans %s", manifest.version, app_path);
+    char text[128];
+    snprintf(text, sizeof(text), "Installation de la version %s…", manifest.version);
+    show_message("Mise à jour", text);
+
+    if (pbd_updater_install(&manifest, app_path, &result) != 0) {
+        log_line("Mise à jour impossible : %s", result.error);
+        redraw();
+        if (interactive) {
+            Message(ICON_ERROR, "Mise à jour impossible", result.error, 5000);
+        }
+        return;
+    }
+    restart(app_path);
+}
+
+/* Une vérification par jour, profitant d'une connexion déjà ouverte ; jamais pour une version de développement. */
+static void check_for_update_daily(void)
+{
+    if (strcmp(PBD_VERSION, "dev") != 0 && time(NULL) - last_update_check >= UPDATE_CHECK_SECONDS) {
+        check_for_update(0);
+    }
+}
+
 static void refresh(void)
 {
     ClearTimer(refresh);
@@ -185,6 +264,9 @@ static void refresh(void)
 
     pbd_fetch_result result;
     int fetched = pbd_fetch_screen(&config, SCREEN_FILE, &result);
+    if (fetched == 0) {
+        check_for_update_daily();
+    }
 
     // Sur batterie, le Wi-Fi est coupé entre deux écrans pour préserver l'autonomie
     if (!IsCharging()) {
@@ -192,7 +274,7 @@ static void refresh(void)
     }
 
     if (fetched != 0) {
-        show_error(result.error);
+        show_error(result.http.error);
         schedule_refresh(RETRY_SECONDS);
         return;
     }
@@ -253,6 +335,13 @@ static void on_menu(int index)
         break;
     case MENU_TOKEN:
         open_keyboard("Clé d'accès", config.token, KBD_NORMAL, on_token_entered);
+        break;
+    case MENU_UPDATE:
+        if (NetConnect(NULL) == NET_OK) {
+            check_for_update(1);
+        } else {
+            show_error("Wi-Fi indisponible.");
+        }
         break;
     case MENU_EXIT:
         CloseApp();
