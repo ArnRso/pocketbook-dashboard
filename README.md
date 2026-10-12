@@ -90,7 +90,7 @@ make docker-qa     # clang-format, cppcheck, tests natifs (sanitizers), compilat
 make install       # copie dist/pocketbook-dashboard.app sur la liseuse branchée en USB
 ```
 
-La CI exécute le même `make qa` et publie l'application de `main` dans la release
+La CI exécute le même `make qa` et publie l'application de `main`, zippée, dans la release
 [device-latest](https://github.com/ArnRso/pocketbook-dashboard/releases/tag/device-latest).
 
 ## Administration

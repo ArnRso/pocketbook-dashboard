@@ -134,15 +134,17 @@ jobs:
           if-no-files-found: error
 
       # La dernière version de main est toujours téléchargeable depuis la release « device-latest ».
+      # GitHub refuse l'extension .app pour les fichiers de release : l'application est publiée zippée.
       - name: Publish application
         if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          (cd dist && zip -q pocketbook-dashboard.zip pocketbook-dashboard.app)
           gh release view device-latest > /dev/null 2>&1 \
             || gh release create device-latest --prerelease --title "Application liseuse" --notes "Dernière version de main."
-          gh release upload device-latest dist/pocketbook-dashboard.app --clobber
-          gh release edit device-latest --notes "Dernière version de main : ${GITHUB_SHA::7}. Copier pocketbook-dashboard.app dans le dossier applications de la liseuse."
+          gh release upload device-latest dist/pocketbook-dashboard.zip --clobber
+          gh release edit device-latest --notes "Dernière version de main : ${GITHUB_SHA::7}. Décompresser pocketbook-dashboard.zip et copier pocketbook-dashboard.app dans le dossier applications de la liseuse."
 
   security-scan:
     name: Security Scan
