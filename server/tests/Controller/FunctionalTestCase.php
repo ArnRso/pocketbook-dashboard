@@ -5,8 +5,14 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Device\DeviceManager;
+use App\Entity\Dashboard;
 use App\Entity\Device;
 use App\Entity\Place;
+use App\Entity\Tile\ClockTile;
+use App\Entity\Tile\CommuteTile;
+use App\Entity\Tile\CurrentWeatherTile;
+use App\Entity\Tile\HourlyForecastTile;
+use App\Entity\Tile\RainTile;
 use App\Entity\Trip;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -68,34 +74,46 @@ abstract class FunctionalTestCase extends WebTestCase
     /**
      * @return array{Device, string} la liseuse et sa clé en clair
      */
-    protected function createDevice(bool $enabled = true): array
+    protected function createDevice(bool $enabled = true, ?Dashboard $dashboard = null): array
     {
-        $device = (new Device())->setName('Salon')->setRefreshSeconds(600)->setEnabled($enabled);
+        $device = (new Device())->setName('Salon')->setRefreshSeconds(600)->setEnabled($enabled)->setDashboard($dashboard);
         $this->entityManager()->persist($device);
         $this->entityManager()->flush();
 
         return [$device, static::getContainer()->get(DeviceManager::class)->generateToken($device)];
     }
 
-    protected function createCommute(bool $withCoordinates = true): Trip
+    /**
+     * Dashboard de démonstration : date, météo actuelle, pluie, prévisions et trajet Maison → Travail
+     * affiché de 6 h à 20 h.
+     */
+    protected function createDashboard(bool $withCoordinates = true): Dashboard
     {
-        $home = (new Place())->setLabel('Maison')->setAddress('Place Bellecour, Lyon')->setLatitude(45.7576)->setLongitude(4.832)->setWeatherLocation(true);
+        $home = (new Place())->setLabel('Maison')->setAddress('Place Bellecour, Lyon')->setLatitude(45.7576)->setLongitude(4.832);
         $work = (new Place())->setLabel('Travail')->setAddress('Villeurbanne');
         if ($withCoordinates) {
             $work->setLatitude(45.7719)->setLongitude(4.8902);
         }
-        $trip = (new Trip())
-            ->setOrigin($home)
-            ->setDestination($work)
-            ->setStartTime(new \DateTimeImmutable('06:00'))
-            ->setEndTime(new \DateTimeImmutable('20:00'));
+        $trip = (new Trip())->setOrigin($home)->setDestination($work);
 
-        foreach ([$home, $work, $trip] as $entity) {
-            $this->entityManager()->persist($entity);
-        }
+        $commute = (new CommuteTile())->setTrip($trip)->place(1, 12, 12, 5);
+        $commute->getSchedule()->setStartTime(new \DateTimeImmutable('06:00'))->setEndTime(new \DateTimeImmutable('20:00'));
+
+        $dashboard = (new Dashboard())
+            ->setName('Principal')
+            ->addTile((new ClockTile())->place(1, 1, 12, 2))
+            ->addTile((new CurrentWeatherTile())->setPlace($home)->place(1, 3, 12, 3))
+            ->addTile((new RainTile())->setPlace($home)->place(1, 6, 12, 2))
+            ->addTile((new HourlyForecastTile())->setPlace($home)->place(1, 8, 12, 4))
+            ->addTile($commute);
+
+        $this->entityManager()->persist($home);
+        $this->entityManager()->persist($work);
+        $this->entityManager()->persist($trip);
+        $this->entityManager()->persist($dashboard);
         $this->entityManager()->flush();
 
-        return $trip;
+        return $dashboard;
     }
 
     protected function bearer(string $token): string

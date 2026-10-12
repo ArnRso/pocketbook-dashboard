@@ -3,7 +3,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>{{ dashboard ? dashboard.name : 'Dashboard' }}</title>
     <style>
         @font-face {
             font-family: "Atkinson";
@@ -22,89 +22,132 @@
         }
 
         body {
-            display: flex;
-            flex-direction: column;
-            padding: 48px 56px 40px;
             font-family: "Atkinson", sans-serif;
-            font-size: 40px;
+            font-size: 32px;
             line-height: 1.2;
         }
 
         .muted { color: #444; }
         .icon { display: block; width: 100%; height: 100%; }
 
-        section { padding: 36px 0; border-top: 5px solid #000; }
-
-        h2 {
-            margin-bottom: 24px;
-            font-size: 32px;
-            font-weight: 800;
-            letter-spacing: .12em;
-            text-transform: uppercase;
+        /* Grille : chaque tuile est un conteneur, ses widgets se dimensionnent en proportion (cqw, cqh) */
+        .grid {
+            display: grid;
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            grid-template-columns: repeat({{ constant('App\\Screen\\Grid::COLUMNS') }}, minmax(0, 1fr));
+            grid-template-rows: repeat({{ constant('App\\Screen\\Grid::ROWS') }}, minmax(0, 1fr));
         }
 
-        /* En-tête */
-        .top { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 32px; }
-        .top .date { font-size: 76px; font-weight: 800; letter-spacing: -.01em; }
-        .top .meta { text-align: right; font-size: 34px; }
+        .tile {
+            container-type: size;
+            margin: 8px;
+            padding: 16px 22px;
+            overflow: hidden;
+            border: 3px solid #000;
+            border-radius: 16px;
+        }
+
+        .widget { display: flex; flex-direction: column; width: 100%; height: 100%; }
+
+        .tile-title {
+            margin-bottom: 2cqh;
+            overflow: hidden;
+            font-size: clamp(18px, 10cqh, 30px);
+            font-weight: 800;
+            letter-spacing: .1em;
+            text-overflow: ellipsis;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .notice { font-size: clamp(20px, 12cqh, 40px); font-weight: 700; }
+
+        .empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 80px;
+            font-size: 48px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* Date et heure */
+        .clock { justify-content: center; }
+        .clock-date { overflow: hidden; font-size: min(48cqh, 7.5cqw); font-weight: 800; line-height: 1; white-space: nowrap; }
+        .clock-meta { margin-top: 4cqh; font-size: min(20cqh, 3.2cqw); }
 
         /* Météo actuelle */
-        .now { display: flex; align-items: center; gap: 40px; }
-        .now .icon { width: 250px; height: 250px; flex: none; }
-        .now .temp { font-size: 220px; font-weight: 800; line-height: .9; letter-spacing: -.04em; }
-        .now .details { margin-left: auto; font-size: 38px; line-height: 1.45; text-align: right; }
-        .now .condition { font-size: 50px; font-weight: 800; margin-bottom: 6px; }
+        .current { flex-direction: row; align-items: center; gap: 3cqw; }
+        .current .icon { flex: none; width: min(90cqh, 30cqw); height: min(90cqh, 30cqw); }
+        .current-temp { font-size: min(80cqh, 24cqw); font-weight: 800; line-height: .85; letter-spacing: -.04em; }
+        .current-details { margin-left: auto; font-size: min(11cqh, 2.8cqw); line-height: 1.4; text-align: right; }
+        .current-condition { font-size: 1.35em; font-weight: 800; }
+        @container (max-width: 760px) { .current-details { display: none; } }
 
         /* Pluie */
-        .rain-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; margin-bottom: 36px; }
-        .rain-head .summary { font-size: 52px; font-weight: 800; }
-        .rain-head .totals { font-size: 36px; text-align: right; line-height: 1.4; }
+        .rain-body { display: flex; flex: 1; align-items: flex-end; justify-content: space-between; gap: 3cqw; }
+        .rain-summary { font-size: min(34cqh, 4.6cqw); font-weight: 800; }
+        .rain-totals { font-size: min(18cqh, 2.8cqw); line-height: 1.4; text-align: right; }
+        @container (max-width: 760px) {
+            .rain-body { flex-direction: column; align-items: flex-start; justify-content: center; }
+            .rain-summary { font-size: 8cqw; }
+            .rain-totals { font-size: 5cqw; text-align: left; }
+        }
 
-        .hours { display: grid; grid-template-columns: repeat(12, 1fr); text-align: center; }
-        .hours > div { display: flex; flex-direction: column; align-items: center; }
-        .hours .hour { font-size: 32px; font-weight: 700; }
-        .hours .icon { width: 76px; height: 76px; margin: 6px 0; }
-        .hours .t { font-size: 40px; font-weight: 800; }
-        .hours .bar-area { position: relative; width: 100%; height: 110px; margin-top: 14px; border-bottom: 4px solid #000; }
-        .hours .bar { position: absolute; bottom: 0; left: 20%; width: 60%; background: #000; }
-        .hours .mm { margin-top: 8px; font-size: 30px; font-weight: 700; }
-        .hours .prob { font-size: 28px; }
+        /* Prévisions heure par heure : autant d'heures que la largeur en permet */
+        .hours {
+            display: grid;
+            height: 100%;
+            overflow: hidden;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-rows: 100%;
+            grid-auto-rows: 0;
+            text-align: center;
+        }
+        .hour { display: flex; flex-direction: column; align-items: center; min-height: 0; }
+        .hour-label { font-size: min(9cqh, 30px); font-weight: 700; }
+        .hour .icon { flex: none; width: min(18cqh, 72px); height: min(18cqh, 72px); margin: 1cqh 0; }
+        .hour-temp { font-size: min(10cqh, 38px); font-weight: 800; }
+        .bar-area { position: relative; flex: 1; width: 100%; min-height: 0; margin-top: 1cqh; border-bottom: 4px solid #000; }
+        .bar { position: absolute; bottom: 0; left: 20%; width: 60%; background: #000; }
+        .hour-mm { margin-top: .5cqh; font-size: min(7cqh, 28px); font-weight: 700; }
+        .hour-prob { font-size: min(7cqh, 26px); }
+        @container (max-height: 300px) { .bar-area, .hour-mm, .hour-prob { display: none; } }
 
         /* Trajet */
-        .widget-commute { flex: 1; }
-        .widget-commute .main { display: flex; align-items: center; gap: 48px; }
-        .widget-commute .duration { font-size: 210px; font-weight: 800; line-height: .9; letter-spacing: -.04em; white-space: nowrap; }
-        .widget-commute .duration small { font-size: 64px; letter-spacing: 0; }
-        .widget-commute .info { font-size: 38px; line-height: 1.45; }
+        .commute-body { display: flex; flex: 1; align-items: center; gap: 4cqw; min-height: 0; }
+        .commute-duration { font-size: min(55cqh, 22cqw); font-weight: 800; line-height: .9; letter-spacing: -.04em; white-space: nowrap; }
+        .commute-duration small { font-size: .3em; letter-spacing: 0; }
+        .commute-info { font-size: min(11cqh, 3cqw); line-height: 1.45; }
         .status {
             display: inline-block;
-            margin-bottom: 12px;
-            padding: 6px 22px;
-            border: 5px solid #000;
-            border-radius: 14px;
-            font-size: 44px;
+            margin-bottom: .3em;
+            padding: .1em .5em;
+            border: 4px solid #000;
+            border-radius: 12px;
+            font-size: 1.15em;
             font-weight: 800;
         }
         .status.slow { background: #bbb; }
         .status.jammed { background: #000; color: #fff; }
-
-        .notice { font-size: 44px; font-weight: 700; }
-
-        footer { display: flex; justify-content: space-between; font-size: 26px; }
+        @container (max-width: 760px) { .commute-route { display: none; } }
     </style>
 </head>
 <body>
-    <header class="top">
-        <div class="date">{{ generatedAt|format_datetime(pattern: 'EEEE d MMMM', locale: 'fr')|capitalize }}</div>
-        <div class="meta muted">Mis à jour à {{ generatedAt|date('H:i') }}</div>
-    </header>
-
-    {{ widget('weather', generatedAt) }}
-    {{ widget('commute', generatedAt) }}
-
-    <footer class="muted">
-        <span>Météo : Open-Meteo / Météo-France</span>
-        <span>Trafic : Waze</span>
-    </footer>
+    {% if dashboard %}
+        <div class="grid">
+            {% for tile in tiles %}
+                <div class="tile tile-{{ tile.widget }}" style="grid-column: {{ tile.column }} / span {{ tile.width }}; grid-row: {{ tile.row }} / span {{ tile.height }}">
+                    {{ widget(tile, generatedAt) }}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty">Aucun dashboard n'est assigné à cette liseuse.<br>Choisissez-en un dans l'admin, rubrique Liseuses.</div>
+    {% endif %}
 </body>
 </html>

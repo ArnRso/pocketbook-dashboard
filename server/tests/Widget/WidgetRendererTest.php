@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Widget;
 
+use App\Entity\Tile\ClockTile;
+use App\Entity\Tile\Tile;
 use App\Widget\WidgetInterface;
 use App\Widget\WidgetNotConfiguredException;
 use App\Widget\WidgetRenderer;
@@ -19,18 +21,18 @@ use Twig\Loader\ArrayLoader;
 #[CoversClass(WidgetNotConfiguredException::class)]
 final class WidgetRendererTest extends TestCase
 {
-    public function testWidgetIsRenderedWithItsDataForTheGivenMoment(): void
+    public function testTileIsRenderedByTheWidgetOfItsTypeForTheGivenMoment(): void
     {
-        $widget = new FakeWidget(static fn (\DateTimeImmutable $at): object => new \ArrayObject(['value' => $at->format('H:i')]));
+        $widget = new FakeWidget(static fn (Tile $tile, \DateTimeImmutable $at): object => new \ArrayObject(['value' => $tile->widget().' '.$at->format('H:i')]));
 
-        self::assertSame('valeur : 08:00', $this->renderer($widget)->render('fake', new \DateTimeImmutable('2026-10-12 08:00')));
+        self::assertSame('valeur : clock 08:00', $this->renderer('clock', $widget)->render(new ClockTile(), new \DateTimeImmutable('2026-10-12 08:00')));
     }
 
-    public function testDisplayableErrorReplacesTheWidget(): void
+    public function testDisplayableErrorReplacesTheTileContent(): void
     {
         $widget = new FakeWidget(static fn (): never => throw new WidgetNotConfiguredException('Rien à afficher'));
 
-        self::assertSame('fake indisponible : Rien à afficher', $this->renderer($widget)->render('fake', new \DateTimeImmutable('2026-10-12 08:00')));
+        self::assertSame('Date et heure indisponible : Rien à afficher', $this->renderer('clock', $widget)->render(new ClockTile(), new \DateTimeImmutable('2026-10-12 08:00')));
     }
 
     public function testUnexpectedErrorsAreNotHidden(): void
@@ -39,24 +41,24 @@ final class WidgetRendererTest extends TestCase
 
         $this->expectException(\LogicException::class);
 
-        $this->renderer($widget)->render('fake', new \DateTimeImmutable('2026-10-12 08:00'));
+        $this->renderer('clock', $widget)->render(new ClockTile(), new \DateTimeImmutable('2026-10-12 08:00'));
     }
 
-    public function testUnknownWidgetIsAnError(): void
+    public function testTileWithoutWidgetIsAnError(): void
     {
         $this->expectException(ServiceNotFoundException::class);
 
-        $this->renderer(new FakeWidget(static fn (): object => new \stdClass()))->render('inconnu', new \DateTimeImmutable('2026-10-12 08:00'));
+        $this->renderer('autre', new FakeWidget(static fn (): object => new \stdClass()))->render(new ClockTile(), new \DateTimeImmutable('2026-10-12 08:00'));
     }
 
-    private function renderer(WidgetInterface $widget): WidgetRenderer
+    private function renderer(string $name, WidgetInterface $widget): WidgetRenderer
     {
         /** @var ServiceLocator<WidgetInterface> $locator */
-        $locator = new ServiceLocator(['fake' => static fn (): WidgetInterface => $widget]);
+        $locator = new ServiceLocator([$name => static fn (): WidgetInterface => $widget]);
 
         return new WidgetRenderer($locator, new Environment(new ArrayLoader([
             'fake.html.twig' => 'valeur : {{ data.value }}',
-            'widget/_unavailable.html.twig' => '{{ name }} indisponible : {{ message }}',
+            'widget/_unavailable.html.twig' => '{{ tile.describe }} indisponible : {{ message }}',
         ])), new NullLogger());
     }
 }
@@ -67,7 +69,7 @@ final class WidgetRendererTest extends TestCase
 final readonly class FakeWidget implements WidgetInterface
 {
     /**
-     * @param \Closure(\DateTimeImmutable): object $data
+     * @param \Closure(Tile, \DateTimeImmutable): object $data
      */
     public function __construct(
         private \Closure $data,
@@ -79,8 +81,8 @@ final readonly class FakeWidget implements WidgetInterface
         return 'fake.html.twig';
     }
 
-    public function data(\DateTimeImmutable $at): object
+    public function data(Tile $tile, \DateTimeImmutable $at): object
     {
-        return ($this->data)($at);
+        return ($this->data)($tile, $at);
     }
 }

@@ -21,7 +21,7 @@ final class PreviewMoment
      */
     public function resolve(PreviewQuery $query): ?\DateTimeImmutable
     {
-        if ($query->isEmpty()) {
+        if ($query->isNow()) {
             return null;
         }
 

@@ -17,17 +17,4 @@ class TripRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Trip::class);
     }
-
-    public function findActiveAt(\DateTimeImmutable $moment): ?Trip
-    {
-        $trips = $this->findBy(['enabled' => true], ['startTime' => 'ASC']);
-
-        foreach ($trips as $trip) {
-            if ($trip->isActiveAt($moment)) {
-                return $trip;
-            }
-        }
-
-        return null;
-    }
 }

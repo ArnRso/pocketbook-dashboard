@@ -1,0 +1,11 @@
+{% set weather = data.report %}
+<div class="widget rain">
+    <div class="tile-title">Pluie · {{ data.place }}</div>
+    <div class="rain-body">
+        <div class="rain-summary">{{ weather.nowcastSummary }}</div>
+        <div class="rain-totals">
+            <div>Aujourd'hui <b>{{ weather.precipitationToday|number_format(1, ',') }} mm</b> · risque {{ weather.precipitationProbability }} %</div>
+            <div class="muted">Hier {{ weather.precipitationYesterday|number_format(1, ',') }} mm</div>
+        </div>
+    </div>
+</div>

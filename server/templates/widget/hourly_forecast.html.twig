@@ -1,0 +1,21 @@
+{% import 'widget/_icons.html.twig' as icons %}
+{% set weather = data.report %}
+{% set scale = max([2]|merge(weather.hours|map(h => h.precipitation))) %}
+<div class="widget">
+    <div class="hours">
+        {% for hour in weather.hours %}
+            <div class="hour">
+                <div class="hour-label">{{ hour.time|date('G') }}h</div>
+                {{ icons.weather(hour.condition.icon) }}
+                <div class="hour-temp">{{ hour.temperature|round }}°</div>
+                <div class="bar-area">
+                    {% if hour.precipitation > 0 %}
+                        <div class="bar" style="height: {{ max(4, hour.precipitation / scale * 100)|round }}%"></div>
+                    {% endif %}
+                </div>
+                <div class="hour-mm">{{ hour.precipitation > 0 ? hour.precipitation|number_format(1, ',') : '–' }}</div>
+                <div class="hour-prob muted">{{ hour.precipitationProbability }} %</div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

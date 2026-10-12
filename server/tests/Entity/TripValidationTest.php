@@ -30,29 +30,25 @@ final class TripValidationTest extends KernelTestCase
         self::assertSame('La destination doit être différente du départ.', $violations->get(0)->getMessage());
     }
 
-    public function testEndMustFollowStart(): void
+    public function testPlacesAreRequired(): void
     {
-        $violations = $this->validate($this->trip(new Place(), new Place())->setEndTime(new \DateTimeImmutable('05:00')));
+        $violations = $this->validate(new Trip());
 
-        self::assertCount(1, $violations);
-        self::assertSame('endTime', $violations->get(0)->getPropertyPath());
+        self::assertCount(2, $violations);
+        self::assertSame('origin', $violations->get(0)->getPropertyPath());
+        self::assertSame('destination', $violations->get(1)->getPropertyPath());
     }
 
-    public function testAtLeastOneDayIsRequired(): void
+    public function testDescription(): void
     {
-        $violations = $this->validate($this->trip(new Place(), new Place())->setWeekdays([]));
+        $trip = $this->trip((new Place())->setLabel('Maison'), (new Place())->setLabel('Travail'));
 
-        self::assertCount(1, $violations);
-        self::assertSame('weekdays', $violations->get(0)->getPropertyPath());
+        self::assertSame('Maison → Travail', (string) $trip);
     }
 
     private function trip(Place $origin, Place $destination): Trip
     {
-        return (new Trip())
-            ->setOrigin($origin)
-            ->setDestination($destination)
-            ->setStartTime(new \DateTimeImmutable('06:00'))
-            ->setEndTime(new \DateTimeImmutable('10:00'));
+        return (new Trip())->setOrigin($origin)->setDestination($destination);
     }
 
     private function validate(Trip $trip): ConstraintViolationListInterface

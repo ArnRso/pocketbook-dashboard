@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Screen;
 
+use App\Entity\Dashboard;
+use App\Entity\Tile\Tile;
 use Sensiolabs\GotenbergBundle\Enumeration\ScreenshotFormat;
 use Sensiolabs\GotenbergBundle\GotenbergScreenshotInterface;
 use Sensiolabs\GotenbergBundle\Processor\InMemoryProcessor;
@@ -34,22 +36,24 @@ class ScreenRenderer
     }
 
     /**
-     * @param \DateTimeImmutable|null $at moment à simuler pour un aperçu (widgets affichés, heure) ; maintenant par défaut
+     * @param Dashboard|null          $dashboard null si la liseuse n'a pas de dashboard assigné
+     * @param \DateTimeImmutable|null $at        moment à simuler pour un aperçu (tuiles affichées, heure) ; maintenant par défaut
      */
-    public function html(?\DateTimeImmutable $at = null): string
+    public function html(?Dashboard $dashboard, ?\DateTimeImmutable $at = null): string
     {
-        return $this->twig->render(self::TEMPLATE, $this->context($at, gotenberg: false));
+        return $this->twig->render(self::TEMPLATE, $this->context($dashboard, $at, gotenberg: false));
     }
 
     /**
-     * @param \DateTimeImmutable|null $at moment à simuler pour un aperçu ; maintenant par défaut
+     * @param Dashboard|null          $dashboard null si la liseuse n'a pas de dashboard assigné
+     * @param \DateTimeImmutable|null $at        moment à simuler pour un aperçu ; maintenant par défaut
      *
      * @return string image PNG en niveaux de gris
      */
-    public function png(?\DateTimeImmutable $at = null): string
+    public function png(?Dashboard $dashboard, ?\DateTimeImmutable $at = null): string
     {
         $builder = $this->gotenberg->html()
-            ->content(self::TEMPLATE, $this->context($at, gotenberg: true))
+            ->content(self::TEMPLATE, $this->context($dashboard, $at, gotenberg: true))
             ->width($this->width)
             ->height($this->height)
             ->format(ScreenshotFormat::Png);
@@ -69,10 +73,19 @@ class ScreenRenderer
     }
 
     /**
-     * @return array{generatedAt: \DateTimeImmutable, gotenberg: bool}
+     * Contexte du template Twig.
+     *
+     * @return array{generatedAt: \DateTimeImmutable, dashboard: ?Dashboard, tiles: list<Tile>, gotenberg: bool}
      */
-    private function context(?\DateTimeImmutable $at, bool $gotenberg): array
+    private function context(?Dashboard $dashboard, ?\DateTimeImmutable $at, bool $gotenberg): array
     {
-        return ['generatedAt' => $at ?? $this->clock->now(), 'gotenberg' => $gotenberg];
+        $moment = $at ?? $this->clock->now();
+
+        return [
+            'generatedAt' => $moment,
+            'dashboard' => $dashboard,
+            'tiles' => $dashboard?->tilesVisibleAt($moment) ?? [],
+            'gotenberg' => $gotenberg,
+        ];
     }
 }

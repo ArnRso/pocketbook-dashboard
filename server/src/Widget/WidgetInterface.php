@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Widget;
 
+use App\Entity\Tile\Tile;
 use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 
 /**
- * Bloc affiché sur l'écran des liseuses. Chaque widget déclare son nom avec
- * #[AsTaggedItem('nom')], utilisé dans les templates : {{ widget('nom', generatedAt) }}.
+ * Affichage d'un type de tuile. Chaque widget se déclare sous le nom de sa tuile avec
+ * #[AsTaggedItem(XxxTile::WIDGET)].
  */
 #[AutoconfigureTag(self::TAG)]
 interface WidgetInterface
@@ -24,5 +25,5 @@ interface WidgetInterface
      *
      * @throws DisplayableException quand le widget ne peut pas être affiché pour une raison connue
      */
-    public function data(\DateTimeImmutable $at): object;
+    public function data(Tile $tile, \DateTimeImmutable $at): object;
 }

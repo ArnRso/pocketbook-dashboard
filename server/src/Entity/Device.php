@@ -37,6 +37,10 @@ class Device implements UserInterface
     #[ORM\Column]
     private bool $enabled = true;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    private ?Dashboard $dashboard = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -102,6 +106,18 @@ class Device implements UserInterface
     public function setEnabled(bool $enabled): static
     {
         $this->enabled = $enabled;
+
+        return $this;
+    }
+
+    public function getDashboard(): ?Dashboard
+    {
+        return $this->dashboard;
+    }
+
+    public function setDashboard(?Dashboard $dashboard): static
+    {
+        $this->dashboard = $dashboard;
 
         return $this;
     }

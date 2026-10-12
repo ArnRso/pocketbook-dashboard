@@ -17,9 +17,4 @@ class PlaceRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Place::class);
     }
-
-    public function findWeatherLocation(): ?Place
-    {
-        return $this->findOneBy(['weatherLocation' => true], ['id' => 'ASC']);
-    }
 }

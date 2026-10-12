@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Widget;
 
+use App\Entity\Tile\Tile;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireLocator;
 use Symfony\Component\DependencyInjection\ServiceLocator;
@@ -27,16 +28,16 @@ class WidgetRenderer
     }
 
     #[AsTwigFunction('widget', isSafe: ['html'])]
-    public function render(string $name, \DateTimeImmutable $at): string
+    public function render(Tile $tile, \DateTimeImmutable $at): string
     {
-        $widget = $this->widgets->get($name);
+        $widget = $this->widgets->get($tile->widget());
 
         try {
-            return $this->twig->render($widget->template(), ['data' => $widget->data($at)]);
+            return $this->twig->render($widget->template(), ['data' => $widget->data($tile, $at), 'tile' => $tile]);
         } catch (DisplayableException $e) {
-            $this->logger->warning('Widget "{widget}" indisponible : {message}', ['widget' => $name, 'message' => $e->getMessage(), 'exception' => $e]);
+            $this->logger->warning('Tuile « {tile} » indisponible : {message}', ['tile' => $tile->describe(), 'message' => $e->getMessage(), 'exception' => $e]);
 
-            return $this->twig->render('widget/_unavailable.html.twig', ['name' => $name, 'message' => $e->getMessage()]);
+            return $this->twig->render('widget/_unavailable.html.twig', ['tile' => $tile, 'message' => $e->getMessage()]);
         }
     }
 }

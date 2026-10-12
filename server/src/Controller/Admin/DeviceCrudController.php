@@ -11,6 +11,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
@@ -57,6 +58,8 @@ class DeviceCrudController extends AbstractCrudController
         yield TextField::new('name', 'Nom');
         yield IntegerField::new('refreshSeconds', 'Rafraîchissement (s)')
             ->setHelp('Délai entre deux mises à jour de l\'écran, entre 60 et 86400 secondes.');
+        yield AssociationField::new('dashboard', 'Dashboard')
+            ->setHelp('Écran affiché par la liseuse.');
         yield BooleanField::new('enabled', 'Active');
         yield BooleanField::new('hasToken', 'Clé générée')
             ->renderAsSwitch(false)

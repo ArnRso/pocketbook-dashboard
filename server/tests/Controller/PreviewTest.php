@@ -5,17 +5,18 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Controller\DashboardController;
-use App\Entity\Place;
-use App\Repository\PlaceRepository;
-use App\Repository\TripRepository;
+use App\Entity\Dashboard;
+use App\Entity\Tile\ClockTile;
+use App\Entity\Tile\WeatherTile;
+use App\Repository\DashboardRepository;
 use App\Screen\PreviewMoment;
 use App\Screen\PreviewQuery;
 use App\Screen\ScreenRenderer;
+use App\Weather\ForecastProvider;
+use App\Widget\AbstractWeatherWidget;
 use App\Widget\CacheKey;
-use App\Widget\CommuteView;
+use App\Widget\ClockWidget;
 use App\Widget\CommuteWidget;
-use App\Widget\WeatherView;
-use App\Widget\WeatherWidget;
 use App\Widget\WidgetRenderer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -25,156 +26,177 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 #[CoversClass(ScreenRenderer::class)]
 #[CoversClass(PreviewQuery::class)]
 #[CoversClass(PreviewMoment::class)]
+#[CoversClass(DashboardRepository::class)]
 #[CoversClass(WidgetRenderer::class)]
-#[CoversClass(WeatherWidget::class)]
-#[CoversClass(WeatherView::class)]
+#[CoversClass(ClockWidget::class)]
+#[CoversClass(AbstractWeatherWidget::class)]
 #[CoversClass(CommuteWidget::class)]
-#[CoversClass(CommuteView::class)]
+#[CoversClass(ForecastProvider::class)]
 #[CoversClass(CacheKey::class)]
-#[CoversClass(PlaceRepository::class)]
-#[CoversClass(TripRepository::class)]
 final class PreviewTest extends FunctionalTestCase
 {
-    public function testPreviewShowsWeatherAndCommute(): void
+    public function testPreviewShowsEveryVisibleTile(): void
     {
-        $this->createCommute();
+        $this->createDashboard();
         $this->logIn();
 
         $this->client->request('GET', '/preview');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('.date', 'Lundi 12 octobre');
-        self::assertSelectorTextContains('.meta', 'Mis à jour à 13:20');
-        self::assertSelectorTextContains('.widget-weather .temp', '16°');
-        self::assertSelectorTextContains('.widget-weather .condition', 'Ciel dégagé');
-        self::assertSelectorTextContains('.widget-weather h2', 'Pluie · Maison');
-        self::assertSelectorTextContains('.widget-weather .summary', 'Pas de pluie dans les 2 h');
-        self::assertSelectorCount(12, '.widget-weather .hours > div');
-        self::assertSelectorTextContains('.widget-commute h2', 'Maison → Travail');
-        self::assertSelectorTextContains('.widget-commute .duration', '19');
-        self::assertSelectorTextContains('.widget-commute .status', 'Trafic fluide');
-        self::assertSelectorTextContains('.widget-commute', 'Arrivée vers 13:39');
-        self::assertSelectorTextContains('.widget-commute', '9,6 km par Boulevard Périphérique Nord');
-        self::assertSelectorTextNotContains('.widget-commute', 'Rue de Bonnel Lyon');
+        self::assertSelectorCount(5, '.tile');
+        self::assertSelectorTextContains('.tile-clock .clock-date', 'Lundi 12 octobre');
+        self::assertSelectorTextContains('.tile-clock .clock-meta', 'Mis à jour à 13:20');
+        self::assertSelectorTextContains('.tile-current_weather .current-temp', '16°');
+        self::assertSelectorTextContains('.tile-current_weather .current-condition', 'Ciel dégagé');
+        self::assertSelectorTextContains('.tile-rain .tile-title', 'Pluie · Maison');
+        self::assertSelectorTextContains('.tile-rain .rain-summary', 'Pas de pluie dans les 2 h');
+        self::assertSelectorCount(12, '.tile-hourly_forecast .hour');
+        self::assertSelectorTextContains('.tile-commute .tile-title', 'Maison → Travail');
+        self::assertSelectorTextContains('.tile-commute .commute-duration', '19');
+        self::assertSelectorTextContains('.tile-commute .status', 'Trafic fluide');
+        self::assertSelectorTextContains('.tile-commute', 'Arrivée vers 13:39');
+        self::assertSelectorTextContains('.tile-commute', '9,6 km par Boulevard Périphérique Nord');
         self::assertSelectorNotExists('.unavailable');
     }
 
-    public function testPreviewWithoutConfiguration(): void
+    public function testTilesArePlacedOnTheGrid(): void
+    {
+        $this->createDashboard();
+        $this->logIn();
+
+        $crawler = $this->client->request('GET', '/preview');
+
+        self::assertSame('grid-column: 1 / span 12; grid-row: 8 / span 4', $crawler->filter('.tile-hourly_forecast')->attr('style'));
+    }
+
+    public function testWithoutDashboard(): void
     {
         $this->logIn();
 
         $this->client->request('GET', '/preview');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('.widget-weather.unavailable', 'Aucun lieu météo configuré');
-        self::assertSelectorTextContains('.widget-commute', 'Aucun trajet prévu à cette heure');
+        self::assertSelectorTextContains('.empty', 'Aucun dashboard n\'est assigné à cette liseuse.');
     }
 
-    public function testInactiveTripIsNotShown(): void
+    public function testDashboardCanBeChosen(): void
     {
-        $this->createCommute();
+        $this->createDashboard();
+        $other = (new Dashboard())->setName('Cuisine')->addTile((new ClockTile())->place(1, 1, 6, 2));
+        $this->entityManager()->persist($other);
+        $this->entityManager()->flush();
+        $this->logIn();
+
+        $this->client->request('GET', '/preview');
+        self::assertSelectorCount(1, '.tile', 'Sans choix, le premier dashboard par ordre alphabétique est affiché.');
+
+        $this->client->request('GET', \sprintf('/preview?dashboard=%d', (int) $other->getId()));
+        self::assertSelectorCount(1, '.tile');
+        self::assertSelectorExists('.tile-clock');
+    }
+
+    public function testTileOutsideItsScheduleIsNotShown(): void
+    {
+        $this->createDashboard();
         $this->logIn();
         self::mockTime('2026-10-12 21:00:00');
 
         $this->client->request('GET', '/preview');
 
-        self::assertSelectorTextContains('.widget-commute', 'Aucun trajet prévu à cette heure');
+        self::assertSelectorCount(4, '.tile');
+        self::assertSelectorNotExists('.tile-commute');
     }
 
-    public function testWazeFailureOnlyAffectsTheCommuteWidget(): void
+    public function testWazeFailureOnlyAffectsTheCommuteTile(): void
     {
-        $this->createCommute();
+        $this->createDashboard();
         $this->logIn();
         $this->routingResponse = new MockResponse('', ['http_code' => 403]);
 
         $this->client->request('GET', '/preview');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('.widget-commute.unavailable', 'Waze a refusé la requête (HTTP 403).');
-        self::assertSelectorTextContains('.widget-weather .condition', 'Ciel dégagé');
+        self::assertSelectorTextContains('.tile-commute .unavailable .tile-title', 'Trajet · Maison → Travail');
+        self::assertSelectorTextContains('.tile-commute .unavailable', 'Waze a refusé la requête (HTTP 403).');
+        self::assertSelectorTextContains('.tile-current_weather .current-condition', 'Ciel dégagé');
     }
 
-    public function testOpenMeteoFailureOnlyAffectsTheWeatherWidget(): void
+    public function testOpenMeteoFailureOnlyAffectsTheWeatherTiles(): void
     {
-        $this->createCommute();
+        $this->createDashboard();
         $this->logIn();
         $this->weatherResponse = new MockResponse('', ['http_code' => 500]);
 
         $this->client->request('GET', '/preview');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('.widget-weather.unavailable', 'Open-Meteo est injoignable');
-        self::assertSelectorTextContains('.widget-commute h2', 'Maison → Travail');
+        self::assertSelectorCount(3, '.unavailable');
+        self::assertSelectorTextContains('.tile-current_weather .unavailable', 'Open-Meteo est injoignable');
+        self::assertSelectorTextContains('.tile-commute .tile-title', 'Maison → Travail');
     }
 
-    public function testWeatherLocationWithoutCoordinatesIsReported(): void
+    public function testPlaceWithoutCoordinatesIsReported(): void
     {
-        $this->entityManager()->persist((new Place())->setLabel('Chalet')->setAddress('Quelque part')->setWeatherLocation(true));
+        $dashboard = $this->createDashboard();
+        foreach ($dashboard->getTiles() as $tile) {
+            if ($tile instanceof WeatherTile) {
+                $tile->getPlace()?->setLatitude(null);
+            }
+        }
         $this->entityManager()->flush();
         $this->logIn();
 
         $this->client->request('GET', '/preview');
 
-        self::assertSelectorTextContains('.widget-weather.unavailable', 'Coordonnées manquantes pour le lieu météo Chalet');
-    }
-
-    public function testTripStartingFromAPlaceWithoutCoordinatesIsReported(): void
-    {
-        $trip = $this->createCommute();
-        $trip->getOrigin()?->setLatitude(null);
-        $this->entityManager()->flush();
-        $this->logIn();
-
-        $this->client->request('GET', '/preview');
-
-        self::assertSelectorTextContains('.widget-commute.unavailable', 'Coordonnées manquantes pour le trajet Maison → Travail');
+        self::assertSelectorTextContains('.tile-rain .unavailable', 'Coordonnées manquantes pour le lieu Maison');
     }
 
     public function testTripWithoutCoordinatesIsReported(): void
     {
-        $this->createCommute(withCoordinates: false);
+        $this->createDashboard(withCoordinates: false);
         $this->logIn();
 
         $this->client->request('GET', '/preview');
 
-        self::assertSelectorTextContains('.widget-commute.unavailable', 'Coordonnées manquantes pour le trajet Maison → Travail');
+        self::assertSelectorTextContains('.tile-commute .unavailable', 'Coordonnées manquantes pour le trajet Maison → Travail');
     }
 
-    public function testPreviewOnAChosenDayAndTimeShowsTheWidgetsOfThatMoment(): void
+    public function testPreviewOnAChosenDayAndTimeShowsTheTilesOfThatMoment(): void
     {
-        $this->createCommute();
+        $this->createDashboard();
         $this->logIn();
 
         $this->client->request('GET', '/preview?day=2&time=21:30');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('.date', 'Mardi 13 octobre');
-        self::assertSelectorTextContains('.meta', 'Mis à jour à 21:30');
-        self::assertSelectorTextContains('.widget-commute', 'Aucun trajet prévu à cette heure');
+        self::assertSelectorTextContains('.clock-date', 'Mardi 13 octobre');
+        self::assertSelectorTextContains('.clock-meta', 'Mis à jour à 21:30');
+        self::assertSelectorNotExists('.tile-commute');
         // La météo reste celle du moment présent
-        self::assertSelectorTextContains('.widget-weather .temp', '16°');
+        self::assertSelectorTextContains('.tile-current_weather .current-temp', '16°');
 
         $this->client->request('GET', '/preview?day=2&time=07:00');
 
-        self::assertSelectorTextContains('.widget-commute h2', 'Maison → Travail');
-        self::assertSelectorTextContains('.widget-commute', 'Arrivée vers 07:19');
+        self::assertSelectorTextContains('.tile-commute .tile-title', 'Maison → Travail');
+        self::assertSelectorTextContains('.tile-commute', 'Arrivée vers 07:19');
     }
 
     public function testDayOrTimeAloneKeepsTheOtherOneCurrent(): void
     {
+        $this->createDashboard();
         $this->logIn();
 
         $this->client->request('GET', '/preview?time=07:00');
-        self::assertSelectorTextContains('.date', 'Lundi 12 octobre');
-        self::assertSelectorTextContains('.meta', 'Mis à jour à 07:00');
+        self::assertSelectorTextContains('.clock-date', 'Lundi 12 octobre');
+        self::assertSelectorTextContains('.clock-meta', 'Mis à jour à 07:00');
 
         $this->client->request('GET', '/preview?day=7');
-        self::assertSelectorTextContains('.date', 'Dimanche 18 octobre');
-        self::assertSelectorTextContains('.meta', 'Mis à jour à 13:20');
+        self::assertSelectorTextContains('.clock-date', 'Dimanche 18 octobre');
+        self::assertSelectorTextContains('.clock-meta', 'Mis à jour à 13:20');
     }
 
-    #[DataProvider('invalidMoments')]
-    public function testInvalidMomentIsRejected(string $query): void
+    #[DataProvider('invalidQueries')]
+    public function testInvalidQueryIsRejected(string $query): void
     {
         $this->logIn();
 
@@ -186,30 +208,21 @@ final class PreviewTest extends FunctionalTestCase
     /**
      * @return iterable<string, array{string}>
      */
-    public static function invalidMoments(): iterable
+    public static function invalidQueries(): iterable
     {
         yield 'jour inexistant' => ['day=8'];
         yield 'jour zéro' => ['day=0'];
         yield 'heure hors quart d\'heure' => ['time=08:10'];
         yield 'heure invalide' => ['time=25:00'];
-    }
-
-    public function testPreviewImageOnAChosenDayAndTime(): void
-    {
-        $this->logIn();
-
-        $this->client->request('GET', '/preview.png?day=2&time=07:00');
-
-        self::assertResponseIsSuccessful();
-        self::assertResponseHeaderSame('Content-Type', 'image/png');
+        yield 'dashboard invalide' => ['dashboard=0'];
     }
 
     public function testPreviewImage(): void
     {
-        $this->createCommute();
+        $this->createDashboard();
         $this->logIn();
 
-        $this->client->request('GET', '/preview.png');
+        $this->client->request('GET', '/preview.png?day=2&time=07:00');
 
         self::assertResponseIsSuccessful();
         self::assertResponseHeaderSame('Content-Type', 'image/png');

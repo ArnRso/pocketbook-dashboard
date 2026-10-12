@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Repository\DashboardRepository;
 use App\Screen\PreviewMoment;
 use App\Screen\PreviewQuery;
 use App\Screen\ScreenRenderer;
@@ -28,10 +29,11 @@ final class DashboardController extends AbstractController
     public function preview(
         ScreenRenderer $screen,
         PreviewMoment $moment,
+        DashboardRepository $dashboards,
         #[MapQueryString(validationFailedStatusCode: Response::HTTP_BAD_REQUEST)]
         PreviewQuery $query = new PreviewQuery(),
     ): Response {
-        return new Response($screen->html($moment->resolve($query)));
+        return new Response($screen->html($dashboards->findForPreview($query->dashboard), $moment->resolve($query)));
     }
 
     /**
@@ -41,10 +43,11 @@ final class DashboardController extends AbstractController
     public function previewImage(
         ScreenRenderer $screen,
         PreviewMoment $moment,
+        DashboardRepository $dashboards,
         #[MapQueryString(validationFailedStatusCode: Response::HTTP_BAD_REQUEST)]
         PreviewQuery $query = new PreviewQuery(),
     ): Response {
-        return new Response($screen->png($moment->resolve($query)), Response::HTTP_OK, [
+        return new Response($screen->png($dashboards->findForPreview($query->dashboard), $moment->resolve($query)), Response::HTTP_OK, [
             'Content-Type' => 'image/png',
             'Cache-Control' => 'no-store',
         ]);

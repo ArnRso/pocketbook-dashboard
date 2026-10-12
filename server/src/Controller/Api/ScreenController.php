@@ -20,7 +20,7 @@ final class ScreenController extends AbstractController
     #[Route('/api/v1/screen', name: 'api_screen', methods: ['GET'])]
     public function screen(#[CurrentUser] Device $device, ScreenRenderer $screen): Response
     {
-        return new Response($screen->png(), Response::HTTP_OK, [
+        return new Response($screen->png($device->getDashboard()), Response::HTTP_OK, [
             'Content-Type' => 'image/png',
             'Cache-Control' => 'no-store',
             'X-Refresh-Interval' => $device->getRefreshSeconds(),

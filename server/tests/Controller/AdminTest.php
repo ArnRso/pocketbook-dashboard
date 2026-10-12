@@ -4,34 +4,33 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
-use App\Admin\Field\QuarterHourField;
 use App\Controller\Admin\DashboardController;
+use App\Controller\Admin\DashboardCrudController;
 use App\Controller\Admin\DeviceCrudController;
 use App\Controller\Admin\PlaceCrudController;
 use App\Controller\Admin\TripCrudController;
 use App\Entity\Place;
 use App\EventSubscriber\GeocodePlaceSubscriber;
 use App\Form\PreviewType;
+use App\Repository\DeviceRepository;
 use App\Repository\PlaceRepository;
-use App\Repository\TripRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
 #[CoversClass(DashboardController::class)]
+#[CoversClass(DashboardCrudController::class)]
 #[CoversClass(PlaceCrudController::class)]
 #[CoversClass(TripCrudController::class)]
 #[CoversClass(DeviceCrudController::class)]
 #[CoversClass(GeocodePlaceSubscriber::class)]
 #[CoversClass(PreviewType::class)]
-#[CoversClass(QuarterHourField::class)]
 final class AdminTest extends FunctionalTestCase
 {
     #[DataProvider('pages')]
     public function testPageIsDisplayed(string $url, string $title): void
     {
-        $this->createCommute();
-        $this->createDevice();
+        $this->createDevice(dashboard: $this->createDashboard());
         $this->logIn();
 
         $this->client->request('GET', $url);
@@ -46,6 +45,8 @@ final class AdminTest extends FunctionalTestCase
     public static function pages(): iterable
     {
         yield 'aperçu' => ['/admin', 'Aperçu'];
+        yield 'dashboards' => ['/admin/dashboard', 'Dashboards'];
+        yield 'nouveau dashboard' => ['/admin/dashboard/new', 'Ajouter un dashboard'];
         yield 'lieux' => ['/admin/place', 'Lieux'];
         yield 'nouveau lieu' => ['/admin/place/new', 'Ajouter un lieu'];
         yield 'trajets' => ['/admin/trip', 'Trajets'];
@@ -54,60 +55,59 @@ final class AdminTest extends FunctionalTestCase
         yield 'nouvelle liseuse' => ['/admin/device/new', 'Ajouter une liseuse'];
     }
 
-    public function testPreviewOnAChosenDayAndTime(): void
+    public function testPreviewOfAChosenDashboardDayAndTime(): void
     {
+        $id = (int) $this->createDashboard()->getId();
         $this->logIn();
 
         $this->client->request('GET', '/admin');
-        self::assertSelectorTextContains('body', 'telle que les liseuses la reçoivent');
-        self::assertSelectorExists('img[src="/preview.png"]');
+        self::assertSelectorTextContains('body', 'Voici « Principal » tel que les liseuses le reçoivent');
+        self::assertSelectorExists(\sprintf('img[src="/preview.png?dashboard=%d"]', $id));
         self::assertSelectorCount(96 + 1, 'select[name="time"] option');
 
-        $this->client->submitForm('Prévisualiser', ['day' => '2', 'time' => '21:30'], 'GET');
+        $this->client->submitForm('Prévisualiser', ['dashboard' => (string) $id, 'day' => '2', 'time' => '21:30'], 'GET');
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'recevraient mardi à 21:30');
-        self::assertSelectorExists('img[src="/preview.png?day=2&time=21:30"]');
-        self::assertSelectorExists('a[href="/preview?day=2&time=21:30"]');
+        self::assertSelectorExists(\sprintf('img[src="/preview.png?dashboard=%d&day=2&time=21:30"]', $id));
+        self::assertSelectorExists(\sprintf('a[href="/preview?dashboard=%d&day=2&time=21:30"]', $id));
         self::assertSelectorExists('select[name="day"] option[value="2"][selected]');
         self::assertSelectorExists('select[name="time"] option[value="21:30"][selected]');
     }
 
     public function testInvalidPreviewFallsBackToTheCurrentMoment(): void
     {
+        $this->createDashboard();
         $this->logIn();
 
         $this->client->request('GET', '/admin?day=9&time=21:30&preview=');
 
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorExists('select[name="day"].is-invalid');
-        self::assertSelectorTextContains('body', 'telle que les liseuses la reçoivent');
-        self::assertSelectorExists('img[src="/preview.png"]');
+        self::assertSelectorTextContains('body', 'tel que les liseuses le reçoivent');
     }
 
-    public function testTripHoursAreChosenByQuarterHour(): void
+    public function testPreviewWithoutDashboard(): void
     {
-        $trip = $this->createCommute();
         $this->logIn();
 
-        $crawler = $this->client->request('GET', \sprintf('/admin/trip/%d/edit', (int) $trip->getId()));
-        self::assertSelectorExists('select[name="Trip[startTime]"] option[value="06:00"][selected]');
-        self::assertSelectorCount(96, 'select[name="Trip[endTime]"] option');
+        $this->client->request('GET', '/admin');
 
-        $form = $crawler->selectButton('Sauvegarder les modifications')->form([
-            'Trip[startTime]' => '07:15',
-            'Trip[endTime]' => '09:45',
-        ]);
-        $this->client->submit($form);
+        self::assertSelectorTextContains('body', 'Aucun dashboard pour l\'instant');
+        self::assertSelectorNotExists('img[alt="Aperçu du dashboard"]');
+    }
+
+    public function testDashboardIsAssignedToADevice(): void
+    {
+        $dashboard = $this->createDashboard();
+        [$device] = $this->createDevice();
+        $this->logIn();
+
+        $this->client->request('GET', \sprintf('/admin/device/%d/edit', (int) $device->getId()));
+        $this->client->submitForm('Sauvegarder les modifications', ['Device[dashboard]' => (string) $dashboard->getId()]);
 
         self::assertResponseRedirects();
-        $saved = static::getContainer()->get(TripRepository::class)->find($trip->getId());
-        self::assertNotNull($saved);
-        self::assertSame('07:15', $saved->getStartTime()?->format('H:i'));
-        self::assertSame('09:45', $saved->getEndTime()?->format('H:i'));
-
-        $this->client->request('GET', '/admin/trip');
-        self::assertSelectorTextSame('td[data-column="startTime"]', '07:15');
+        self::assertSame('Principal', static::getContainer()->get(DeviceRepository::class)->find($device->getId())?->getDashboard()?->getName());
     }
 
     public function testDeviceListShowsWhetherAKeyExists(): void
@@ -123,7 +123,7 @@ final class AdminTest extends FunctionalTestCase
 
     public function testPlaceListShowsPreciseCoordinates(): void
     {
-        $this->createCommute();
+        $this->createDashboard();
         $this->logIn();
 
         $this->client->request('GET', '/admin/place');

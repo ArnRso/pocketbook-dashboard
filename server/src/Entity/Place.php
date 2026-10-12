@@ -33,9 +33,6 @@ class Place
     #[Assert\Range(min: -180, max: 180)]
     private ?float $longitude = null;
 
-    #[ORM\Column]
-    private bool $weatherLocation = false;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -102,18 +99,6 @@ class Place
     {
         $this->latitude = $coordinates->latitude;
         $this->longitude = $coordinates->longitude;
-
-        return $this;
-    }
-
-    public function isWeatherLocation(): bool
-    {
-        return $this->weatherLocation;
-    }
-
-    public function setWeatherLocation(bool $weatherLocation): static
-    {
-        $this->weatherLocation = $weatherLocation;
 
         return $this;
     }

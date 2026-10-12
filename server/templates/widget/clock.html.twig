@@ -1,0 +1,4 @@
+<div class="widget clock">
+    <div class="clock-date">{{ data.moment|format_datetime(pattern: 'EEEE d MMMM', locale: 'fr')|capitalize }}</div>
+    <div class="clock-meta muted">Mis à jour à {{ data.moment|date('H:i') }}</div>
+</div>
