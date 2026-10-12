@@ -1,0 +1,19 @@
+# Environnement de développement : code monté en direct, une base SQLite par environnement dans var/.
+# La stack de production est dans ../deploy/compose.yaml.
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    command: ["frankenphp", "run", "--config", "/etc/frankenphp/Caddyfile", "--watch"]
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/app
+    depends_on:
+      - gotenberg
+
+###> sensiolabs/gotenberg-bundle ###
+  gotenberg:
+    image: 'gotenberg/gotenberg:8'
+###< sensiolabs/gotenberg-bundle ###

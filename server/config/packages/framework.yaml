@@ -1,0 +1,27 @@
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+
+    # Note that the session will be started ONLY if you read or write from it.
+    session: true
+
+    #esi: true
+    #fragments: true
+
+    http_client:
+        scoped_clients:
+            open_meteo.client:
+                base_uri: 'https://api.open-meteo.com'
+                timeout: 20
+            # Waze répond sur plusieurs sous-domaines (géocodage et calcul d'itinéraire)
+            waze.client:
+                scope: 'https://[a-z0-9-]+\.waze\.com'
+                timeout: 30
+                headers:
+                    Referer: 'https://www.waze.com/'
+
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file

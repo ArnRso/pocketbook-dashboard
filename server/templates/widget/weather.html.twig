@@ -1,0 +1,44 @@
+{% import 'widget/_icons.html.twig' as icons %}
+{% set weather = data.report %}
+<div class="widget widget-weather">
+    <section class="now">
+        {{ icons.weather(weather.condition.icon) }}
+        <div class="temp">{{ weather.temperature|round }}°</div>
+        <div class="details">
+            <div class="condition">{{ weather.condition.label }}</div>
+            <div>Ressenti {{ weather.feelsLike|round }}°</div>
+            <div>Min {{ weather.temperatureMin|round }}° · Max <b>{{ weather.temperatureMax|round }}°</b></div>
+            <div>Vent {{ weather.windSpeed|round }} km/h · rafales {{ weather.windGusts|round }}</div>
+            <div>Humidité {{ weather.humidity }} % · Soleil {{ weather.sunrise|date('H:i') }} – {{ weather.sunset|date('H:i') }}</div>
+        </div>
+    </section>
+
+    <section class="rain">
+        <h2>Pluie · {{ data.place }}</h2>
+        <div class="rain-head">
+            <div class="summary">{{ weather.nowcastSummary }}</div>
+            <div class="totals">
+                <div>Aujourd'hui <b>{{ weather.precipitationToday|number_format(1, ',') }} mm</b> · risque {{ weather.precipitationProbability }} %</div>
+                <div class="muted">Hier {{ weather.precipitationYesterday|number_format(1, ',') }} mm</div>
+            </div>
+        </div>
+
+        {% set scale = max([2]|merge(weather.hours|map(h => h.precipitation))) %}
+        <div class="hours">
+            {% for hour in weather.hours %}
+                <div>
+                    <div class="hour">{{ hour.time|date('G') }}h</div>
+                    {{ icons.weather(hour.condition.icon) }}
+                    <div class="t">{{ hour.temperature|round }}°</div>
+                    <div class="bar-area">
+                        {% if hour.precipitation > 0 %}
+                            <div class="bar" style="height: {{ max(6, hour.precipitation / scale * 110)|round }}px"></div>
+                        {% endif %}
+                    </div>
+                    <div class="mm">{{ hour.precipitation > 0 ? hour.precipitation|number_format(1, ',') : '–' }}</div>
+                    <div class="prob muted">{{ hour.precipitationProbability }} %</div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>

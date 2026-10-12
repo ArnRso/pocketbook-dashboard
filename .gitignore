@@ -1,0 +1,6 @@
+.DS_Store
+.idea/
+.vscode/
+
+# Secrets de la stack de production
+/deploy/.env

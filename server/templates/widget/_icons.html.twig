@@ -1,0 +1,36 @@
+{% macro weather(name) %}
+    {%- set cloud = 'M16 42H48a9 9 0 0 0 0-18A13 13 0 0 0 22 26A8 8 0 0 0 16 42Z' -%}
+    {%- set moon = 'M38 10a22 22 0 1 0 16 34A18 18 0 0 1 38 10Z' -%}
+    <svg class="icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+        {% if name == 'clear' %}
+            <circle cx="32" cy="32" r="11"/>
+            {% for angle in 0..7 %}<line x1="32" y1="15" x2="32" y2="7" transform="rotate({{ angle * 45 }} 32 32)"/>{% endfor %}
+        {% elseif name == 'clear-night' %}
+            <path d="{{ moon }}" transform="translate(-2 2) scale(.9)"/>
+        {% elseif name == 'partly' %}
+            <circle cx="24" cy="24" r="8"/>
+            {% for angle in 0..7 %}<line x1="24" y1="12" x2="24" y2="6" transform="rotate({{ angle * 45 }} 24 24)"/>{% endfor %}
+            <path d="{{ cloud }}" transform="translate(4 8)" fill="#fff"/>
+        {% elseif name == 'partly-night' %}
+            <path d="{{ moon }}" transform="translate(4 2) scale(.55)"/>
+            <path d="{{ cloud }}" transform="translate(4 8)" fill="#fff"/>
+        {% elseif name == 'cloudy' %}
+            <path d="{{ cloud }}" transform="translate(0 4)"/>
+        {% else %}
+            <path d="{{ cloud }}" transform="translate(0 -6)"/>
+            {% if name == 'rain' %}
+                {% for x in [24, 34, 44] %}<line x1="{{ x }}" y1="43" x2="{{ x - 4 }}" y2="55"/>{% endfor %}
+            {% elseif name == 'drizzle' %}
+                {% for point in [[22, 46], [32, 49], [42, 46], [27, 55], [37, 55]] %}<circle cx="{{ point[0] }}" cy="{{ point[1] }}" r="1.8" fill="currentColor"/>{% endfor %}
+            {% elseif name == 'snow' %}
+                {% for point in [[22, 49], [34, 52], [46, 49]] %}
+                    <path d="M{{ point[0] }} {{ point[1] - 5 }}v10M{{ point[0] - 4.3 }} {{ point[1] - 2.5 }}l8.6 5M{{ point[0] - 4.3 }} {{ point[1] + 2.5 }}l8.6-5"/>
+                {% endfor %}
+            {% elseif name == 'storm' %}
+                <path d="M35 40l-7 10h9l-6 10"/>
+            {% elseif name == 'fog' %}
+                <path d="M12 46H52M18 54H46"/>
+            {% endif %}
+        {% endif %}
+    </svg>
+{% endmacro %}

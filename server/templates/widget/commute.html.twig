@@ -1,0 +1,30 @@
+{% set commute = data.commute %}
+<section class="widget widget-commute">
+    {% if commute %}
+        {% set best = commute.best %}
+        <h2>{{ commute.origin }} → {{ commute.destination }}</h2>
+        <div class="main">
+            <div class="duration">{{ best.minutes|round }}<small> min</small></div>
+            <div class="info">
+                <div class="status {{ best.status.value }}">
+                    {{ best.status.label }}{% if best.delay >= 1 %} · +{{ best.delay|round }} min{% endif %}
+                </div>
+                <div>Arrivée vers <b>{{ commute.arrival|date('H:i') }}</b></div>
+                <div>{{ best.kilometers|number_format(1, ',') }} km par {{ best.name }}</div>
+            </div>
+        </div>
+        {% if commute.alternatives %}
+            <ul class="alternatives">
+                {% for route in commute.alternatives %}
+                    <li>
+                        <span>par {{ route.name }}</span>
+                        <span><b>{{ route.minutes|round }} min</b>{% if route.delay >= 1 %} <span class="muted">(+{{ route.delay|round }})</span>{% endif %}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% else %}
+        <h2>Trajet</h2>
+        <p class="notice muted">Aucun trajet prévu à cette heure</p>
+    {% endif %}
+</section>

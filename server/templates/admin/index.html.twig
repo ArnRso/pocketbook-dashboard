@@ -1,0 +1,12 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title 'Aperçu' %}
+
+{% block main %}
+    <p>
+        Voici l'image telle que les liseuses la reçoivent.
+        La <a href="{{ path('app_preview') }}" target="_blank">version HTML</a> est pratique pour travailler la mise en page.
+    </p>
+    <img src="{{ path('app_preview_image') }}" alt="Aperçu du dashboard"
+         style="max-width: 100%; max-height: 80vh; border: 1px solid var(--border-color); border-radius: 8px">
+{% endblock %}

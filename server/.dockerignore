@@ -1,0 +1,37 @@
+# Contrôle de version
+.git/
+.gitignore
+
+# Environnements locaux
+.env.local
+.env.*.local
+.env.dev
+.env.test
+
+# Cache, logs et données locales
+/var/
+
+# Dépendances (réinstallées dans le builder)
+/vendor/
+/public/bundles/
+
+# Tests et outillage qualité
+/tests/
+/phpunit.dist.xml
+/phpstan.dist.neon
+/.phpunit.cache
+/.php-cs-fixer.dist.php
+/.php-cs-fixer.cache
+/.twig-cs-fixer.cache
+
+# Docker de développement
+compose.yaml
+compose.override.yaml
+
+# Documentation et IDE
+README.md
+AGENTS.md
+CLAUDE.md
+.idea/
+.vscode/
+.DS_Store

@@ -1,0 +1,30 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}Clé d'accès — {{ device.name }}{% endblock %}
+
+{% block main %}
+    {% if token %}
+        <div class="alert alert-success">
+            Nouvelle clé générée. Elle n'est affichée qu'une seule fois : recopie-la maintenant dans la configuration de la liseuse.
+        </div>
+        <dl>
+            <dt>URL du serveur</dt>
+            <dd><code>{{ url('app_home') }}</code></dd>
+            <dt>Clé d'accès</dt>
+            <dd><code style="font-size: 1.2em; user-select: all">{{ token }}</code></dd>
+        </dl>
+    {% else %}
+        <p>
+            {% if device.hasToken %}
+                Cette liseuse possède déjà une clé. En générer une nouvelle <strong>désactive immédiatement l'ancienne</strong> :
+                il faudra mettre à jour la configuration de la liseuse.
+            {% else %}
+                Cette liseuse n'a pas encore de clé d'accès.
+            {% endif %}
+        </p>
+        <form method="post">
+            <input type="hidden" name="_token" value="{{ csrf_token('device-token-' ~ device.id) }}">
+            <button type="submit" class="btn btn-primary"><i class="fa fa-key"></i> Générer une clé</button>
+        </form>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,14 @@
+framework:
+    cache:
+        pools:
+            cache.weather:
+                adapter: cache.app
+                default_lifetime: 900
+            cache.traffic:
+                adapter: cache.app
+                default_lifetime: 300
+
+when@test:
+    framework:
+        cache:
+            app: cache.adapter.array

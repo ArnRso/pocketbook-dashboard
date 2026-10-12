@@ -1,0 +1,114 @@
+{% set font = 'fonts/AtkinsonHyperlegibleNext.ttf' %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <style>
+        @font-face {
+            font-family: "Atkinson";
+            src: url("{{ gotenberg ? gotenberg_asset(font) : asset(font) }}");
+            font-weight: 200 800;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            width: {{ screen.width }}px;
+            height: {{ screen.height }}px;
+            overflow: hidden;
+            background: #fff;
+            color: #000;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            padding: 48px 56px 40px;
+            font-family: "Atkinson", sans-serif;
+            font-size: 40px;
+            line-height: 1.2;
+        }
+
+        .muted { color: #444; }
+        .icon { display: block; width: 100%; height: 100%; }
+
+        section { padding: 36px 0; border-top: 5px solid #000; }
+
+        h2 {
+            margin-bottom: 24px;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        /* En-tête */
+        .top { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 32px; }
+        .top .date { font-size: 76px; font-weight: 800; letter-spacing: -.01em; }
+        .top .meta { text-align: right; font-size: 34px; }
+
+        /* Météo actuelle */
+        .now { display: flex; align-items: center; gap: 40px; }
+        .now .icon { width: 250px; height: 250px; flex: none; }
+        .now .temp { font-size: 220px; font-weight: 800; line-height: .9; letter-spacing: -.04em; }
+        .now .details { margin-left: auto; font-size: 38px; line-height: 1.45; text-align: right; }
+        .now .condition { font-size: 50px; font-weight: 800; margin-bottom: 6px; }
+
+        /* Pluie */
+        .rain-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; margin-bottom: 36px; }
+        .rain-head .summary { font-size: 52px; font-weight: 800; }
+        .rain-head .totals { font-size: 36px; text-align: right; line-height: 1.4; }
+
+        .hours { display: grid; grid-template-columns: repeat(12, 1fr); text-align: center; }
+        .hours > div { display: flex; flex-direction: column; align-items: center; }
+        .hours .hour { font-size: 32px; font-weight: 700; }
+        .hours .icon { width: 76px; height: 76px; margin: 6px 0; }
+        .hours .t { font-size: 40px; font-weight: 800; }
+        .hours .bar-area { position: relative; width: 100%; height: 110px; margin-top: 14px; border-bottom: 4px solid #000; }
+        .hours .bar { position: absolute; bottom: 0; left: 20%; width: 60%; background: #000; }
+        .hours .mm { margin-top: 8px; font-size: 30px; font-weight: 700; }
+        .hours .prob { font-size: 28px; }
+
+        /* Trajet */
+        .widget-commute { flex: 1; }
+        .widget-commute .main { display: flex; align-items: center; gap: 48px; }
+        .widget-commute .duration { font-size: 210px; font-weight: 800; line-height: .9; letter-spacing: -.04em; white-space: nowrap; }
+        .widget-commute .duration small { font-size: 64px; letter-spacing: 0; }
+        .widget-commute .info { font-size: 38px; line-height: 1.45; }
+        .status {
+            display: inline-block;
+            margin-bottom: 12px;
+            padding: 6px 22px;
+            border: 5px solid #000;
+            border-radius: 14px;
+            font-size: 44px;
+            font-weight: 800;
+        }
+        .status.slow { background: #bbb; }
+        .status.jammed { background: #000; color: #fff; }
+
+        .alternatives { margin-top: 36px; }
+        .alternatives li { display: flex; justify-content: space-between; padding: 14px 0; border-top: 2px solid #888; list-style: none; font-size: 36px; }
+        .alternatives b { font-weight: 800; }
+
+        .notice { font-size: 44px; font-weight: 700; }
+
+        footer { display: flex; justify-content: space-between; font-size: 26px; }
+    </style>
+</head>
+<body>
+    <header class="top">
+        <div class="date">{{ generatedAt|format_datetime(pattern: 'EEEE d MMMM', locale: 'fr')|capitalize }}</div>
+        <div class="meta muted">Mis à jour à {{ generatedAt|date('H:i') }}</div>
+    </header>
+
+    {{ widget('weather') }}
+    {{ widget('commute') }}
+
+    <footer class="muted">
+        <span>Météo : Open-Meteo / Météo-France</span>
+        <span>Trafic : Waze</span>
+    </footer>
+</body>
+</html>

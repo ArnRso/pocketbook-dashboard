@@ -1,0 +1,10 @@
+twig:
+    file_name_pattern: '*.twig'
+    globals:
+        screen:
+            width: '%env(int:SCREEN_WIDTH)%'
+            height: '%env(int:SCREEN_HEIGHT)%'
+
+when@test:
+    twig:
+        strict_variables: true

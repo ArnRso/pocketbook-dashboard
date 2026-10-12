@@ -1,0 +1,11 @@
+{"alternatives":[
+  {"response":{"routeName":"Rue de Bonnel Lyon","results":[
+    {"crossTime":600,"crossTimeWithoutRealTime":420,"length":3000},
+    {"crossTime":900,"crossTimeWithoutRealTime":600,"length":3400}]}},
+  {"response":{"routeName":"Boulevard Périphérique Nord","results":[
+    {"crossTime":540,"crossTimeWithoutRealTime":480,"length":5200},
+    {"crossTime":600,"crossTimeWithoutRealTime":600,"length":4400}]}},
+  {"response":{"routeName":"Boulevard Périphérique Nord","results":[
+    {"crossTime":700,"crossTimeWithoutRealTime":480,"length":5200},
+    {"crossTime":700,"crossTimeWithoutRealTime":600,"length":4400}]}}
+]}

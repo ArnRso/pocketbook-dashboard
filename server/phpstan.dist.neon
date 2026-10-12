@@ -1,0 +1,31 @@
+includes:
+    - phar://phpstan.phar/conf/bleedingEdge.neon
+
+parameters:
+    level: max
+    paths:
+        - bin/
+        - config/
+        - public/
+        - src/
+        - tests/
+    excludePaths:
+        # Fichiers générés par Symfony
+        - bin/console
+        - config/preload.php
+        - config/reference.php
+        - public/index.php
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    doctrine:
+        objectManagerLoader: tests/object-manager.php
+        # Les entités éditées par formulaire (EasyAdmin) naissent vides : leurs champs obligatoires
+        # sont nullables côté PHP et garantis par les contraintes de validation.
+        allowNullablePropertyForRequiredField: true
+    checkUninitializedProperties: true
+    checkImplicitMixed: true
+    checkBenevolentUnionTypes: true
+    reportPossiblyNonexistentGeneralArrayOffset: true
+    reportPossiblyNonexistentConstantArrayOffset: true
+    reportAnyTypeWideningInVarTag: true
+    checkMissingCallableSignature: true
