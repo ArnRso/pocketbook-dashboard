@@ -37,6 +37,8 @@ abstract class FunctionalTestCase extends WebTestCase
     protected MockResponse $weatherResponse;
     protected MockResponse $routingResponse;
     protected MockResponse $autocompleteResponse;
+    /** Réponse de TBM à toutes les requêtes ; null : les réponses enregistrées de Palmer */
+    protected ?MockResponse $transitResponse = null;
 
     protected function setUp(): void
     {
@@ -54,7 +56,7 @@ abstract class FunctionalTestCase extends WebTestCase
             ? $this->autocompleteResponse
             : $this->routingResponse,
         ));
-        $container->set('tbm.client', TbmFixtures::http());
+        $container->set('tbm.client', new MockHttpClient(fn (string $method, string $url): MockResponse => $this->transitResponse ?? TbmFixtures::response($url), 'https://bdx.mecatran.com'));
         $container->set('bordeaux_metropole.client', new MockHttpClient(static fn (): MockResponse => self::fixture('chaban-closures.json'), 'https://opendata.bordeaux-metropole.fr'));
         $container->set('gotenberg.client', new MockHttpClient(static fn (string $method, string $url): MockResponse => str_ends_with($url, '/version')
             ? new MockResponse('8.25.0')

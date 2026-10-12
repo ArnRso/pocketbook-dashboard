@@ -26,6 +26,7 @@ declare(strict_types=1);
  */
 return [
     'grid-editor' => ['path' => './assets/grid-editor.js', 'entrypoint' => true],
+    'transit-stop-form' => ['path' => './assets/transit-stop-form.js', 'entrypoint' => true],
     'gridstack' => ['version' => '13.3.0'],
     'gridstack/dist/gridstack.min.css' => ['version' => '13.3.0', 'type' => 'css'],
 ];

@@ -77,14 +77,19 @@ class TransitNetwork
     /**
      * Lignes dans chacune de leurs directions : « Tram E → Gare de Blanquefort ».
      *
+     * @param string|null $stopArea seulement les lignes qui desservent cette zone d'arrêt
+     *
      * @return array<string, string> libellé => ligne et direction (TransitStop::route)
      *
      * @throws TransitException
      */
-    public function routeChoices(): array
+    public function routeChoices(?string $stopArea = null): array
     {
+        $area = null !== $stopArea ? $this->stopArea($stopArea) : null;
+        $lines = null !== $stopArea ? array_intersect_key($this->lines(), array_flip($area->lines ?? [])) : $this->lines();
+
         $choices = [];
-        foreach ($this->lines() as $line) {
+        foreach ($lines as $line) {
             foreach ($line->destinations as $direction => $destination) {
                 $choices[\sprintf('%s → %s', $line->name, $destination)] = $line->ref.'#'.$direction;
             }

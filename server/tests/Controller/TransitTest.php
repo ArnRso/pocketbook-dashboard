@@ -10,10 +10,13 @@ use App\Entity\TransitStop;
 use App\EventSubscriber\DescribeTransitStopSubscriber;
 use App\Form\TileType;
 use App\Repository\TransitStopRepository;
+use App\Transit\RouteChoice;
 use App\Widget\TransitWidget;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 #[CoversClass(TransitStopCrudController::class)]
+#[CoversClass(RouteChoice::class)]
 #[CoversClass(DescribeTransitStopSubscriber::class)]
 #[CoversClass(TileType::class)]
 #[CoversClass(TransitWidget::class)]
@@ -43,6 +46,43 @@ final class TransitTest extends FunctionalTestCase
         self::assertSelectorTextSame('td[data-column="stopName"]', 'Palmer');
         self::assertSelectorTextSame('td[data-column="lineCode"]', 'E');
         self::assertSelectorTextSame('td[data-column="destination"]', 'Gare de Blanquefort');
+    }
+
+    public function testRoutesListOnlyTheLinesServingTheChosenStop(): void
+    {
+        $this->logIn();
+
+        $this->client->request('GET', '/admin/transit-stop/new');
+        self::assertSelectorExists('select[name="TransitStop[route]"][data-routes-url="/admin/transit-stop/routes"]');
+
+        $this->client->request('GET', '/admin/transit-stop/routes?stop=bordeaux:StopPoint:BP:TPALMER:LOC');
+
+        self::assertResponseIsSuccessful();
+        self::assertSame([
+            ['value' => 'bordeaux:Line:59:LOC#1', 'text' => 'Tram A → Cenon Gare / La Gardette / Thiers Benauge'],
+            ['value' => 'bordeaux:Line:59:LOC#0', 'text' => 'Tram A → Hôpital Pellegrin / Le Haillan Rostand'],
+            ['value' => 'bordeaux:Line:163:LOC#1', 'text' => 'Tram E → Floirac Dravemont'],
+            ['value' => 'bordeaux:Line:163:LOC#0', 'text' => 'Tram E → Gare de Blanquefort'],
+        ], json_decode((string) $this->client->getResponse()->getContent(), true, flags: \JSON_THROW_ON_ERROR));
+
+        $this->client->request('GET', '/admin/transit-stop/routes?stop=bordeaux:StopPoint:BP:INCONNU:LOC');
+
+        self::assertSame('[]', $this->client->getResponse()->getContent());
+    }
+
+    public function testRoutesOfAStopWhenTbmIsUnreachable(): void
+    {
+        $this->logIn();
+        $this->transitResponse = new MockResponse('', ['http_code' => 503]);
+
+        $this->client->request('GET', '/admin/transit-stop/routes?stop=bordeaux:StopPoint:BP:TPALMER:LOC');
+
+        self::assertResponseStatusCodeSame(503);
+        self::assertStringContainsString('TBM est injoignable', (string) $this->client->getResponse()->getContent());
+
+        $this->client->request('GET', '/admin/transit-stop/new');
+
+        self::assertSelectorTextContains('.alert-danger', 'TBM est injoignable');
     }
 
     public function testLineMustServeTheStop(): void

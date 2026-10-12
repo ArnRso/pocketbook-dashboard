@@ -40,6 +40,15 @@ final class TransitNetworkTest extends KernelTestCase
         ], $this->network()->routeChoices());
     }
 
+    public function testLinesServingAStop(): void
+    {
+        self::assertSame([
+            'Lianes 1 → ARTIGUES Blancherie' => 'bordeaux:Line:01:LOC#1',
+            'Lianes 1 → MERIGNAC Beaudesert' => 'bordeaux:Line:01:LOC#0',
+        ], $this->network()->routeChoices('bordeaux:StopPoint:BP:GARE1:LOC'));
+        self::assertSame([], $this->network()->routeChoices('bordeaux:StopPoint:BP:INCONNU:LOC'));
+    }
+
     public function testStopIsDescribedWithTheNamesOfTheNetwork(): void
     {
         $stop = (new TransitStop())->setStopArea('bordeaux:StopPoint:BP:TPALMER:LOC')->setRoute('bordeaux:Line:163:LOC#0');
