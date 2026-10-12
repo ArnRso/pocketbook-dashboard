@@ -13,13 +13,13 @@ static void on_header(const char *line, size_t length, void *context)
     }
 }
 
-int pbd_fetch_screen(const pbd_config *config, const char *destination_path, pbd_fetch_result *result)
+int pbd_fetch_screen(const pbd_config *config, int battery, int charging, const char *destination_path, pbd_fetch_result *result)
 {
     result->refresh_seconds = -1;
 
-    char url[PBD_URL_MAX + 32];
+    char url[PBD_URL_MAX + 64];
     char authorization[PBD_TOKEN_MAX + 32];
-    if (pbd_config_screen_url(config, url, sizeof(url)) < 0
+    if (pbd_config_screen_url(config, battery, charging, url, sizeof(url)) < 0
         || snprintf(authorization, sizeof(authorization), "Authorization: Bearer %s", config->token) >= (int)sizeof(authorization)) {
         snprintf(result->http.error, sizeof(result->http.error), "Configuration trop longue.");
         return -1;

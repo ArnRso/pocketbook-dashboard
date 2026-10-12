@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Widget;
 
+use App\Entity\Device;
 use App\Entity\Tile\Tile;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AutowireLocator;
@@ -29,12 +30,12 @@ class WidgetRenderer
     /**
      * @return string|null HTML du widget, null s'il n'a rien à afficher
      */
-    public function render(Tile $tile, \DateTimeImmutable $at): ?string
+    public function render(Tile $tile, \DateTimeImmutable $at, ?Device $device = null): ?string
     {
         $widget = $this->widgets->get($tile->widget());
 
         try {
-            return $this->twig->render($widget->template(), ['data' => $widget->data($tile, $at), 'tile' => $tile]);
+            return $this->twig->render($widget->template(), ['data' => $widget->data($tile, $at, $device), 'tile' => $tile]);
         } catch (NothingToShowException) {
             return null;
         } catch (DisplayableException $e) {

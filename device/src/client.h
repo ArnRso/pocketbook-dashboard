@@ -10,7 +10,8 @@ typedef struct {
     int refresh_seconds;
 } pbd_fetch_result;
 
-/* Télécharge l'écran dans destination_path. Renvoie 0 en cas de succès. */
-int pbd_fetch_screen(const pbd_config *config, const char *destination_path, pbd_fetch_result *result);
+/* Télécharge l'écran dans destination_path en transmettant le niveau de batterie (-1 s'il est inconnu).
+ * Renvoie 0 en cas de succès. */
+int pbd_fetch_screen(const pbd_config *config, int battery, int charging, const char *destination_path, pbd_fetch_result *result);
 
 #endif

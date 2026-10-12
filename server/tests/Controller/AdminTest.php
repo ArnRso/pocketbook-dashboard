@@ -129,6 +129,18 @@ final class AdminTest extends FunctionalTestCase
         self::assertSelectorNotExists('td[data-column="hasToken"] input');
     }
 
+    public function testDeviceListShowsTheBattery(): void
+    {
+        [$device] = $this->createDevice();
+        $device->reportBattery(87, true);
+        $this->entityManager()->flush();
+        $this->logIn();
+
+        $this->client->request('GET', '/admin/device');
+
+        self::assertSelectorTextSame('td[data-column="batteryLevel"]', '87 % (en charge)');
+    }
+
     public function testPlaceListShowsPreciseCoordinates(): void
     {
         $this->createDashboard();

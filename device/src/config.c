@@ -115,9 +115,11 @@ pbd_config_status pbd_config_set_token(pbd_config *config, const char *token)
     return set_value(config->token, sizeof(config->token), token);
 }
 
-int pbd_config_screen_url(const pbd_config *config, char *out, size_t size)
+int pbd_config_screen_url(const pbd_config *config, int battery, int charging, char *out, size_t size)
 {
-    int written = snprintf(out, size, "%s/api/v1/screen", config->server_url);
+    int written = battery >= 0 && battery <= 100
+        ? snprintf(out, size, "%s/api/v1/screen?battery=%d&charging=%d", config->server_url, battery, charging ? 1 : 0)
+        : snprintf(out, size, "%s/api/v1/screen", config->server_url);
     return written < 0 || (size_t)written >= size ? -1 : written;
 }
 

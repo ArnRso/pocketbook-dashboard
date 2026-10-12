@@ -84,7 +84,10 @@
         /* Date et heure */
         .clock { justify-content: center; }
         .clock-date { overflow: hidden; font-size: min(48cqh, 7.5cqw); font-weight: 800; line-height: 1; white-space: nowrap; }
-        .clock-meta { margin-top: 4cqh; font-size: min(20cqh, 3.2cqw); }
+        .clock-meta { display: flex; align-items: center; justify-content: space-between; gap: 1em; margin-top: 4cqh; font-size: min(26cqh, 4.2cqw); }
+        .clock-time { font-weight: 700; white-space: nowrap; }
+        .clock-battery { display: flex; align-items: center; gap: .3em; white-space: nowrap; }
+        .clock-battery .battery { width: 1.9em; height: 1em; }
 
         /* Météo actuelle */
         .current { flex-direction: row; align-items: center; gap: 3cqw; }

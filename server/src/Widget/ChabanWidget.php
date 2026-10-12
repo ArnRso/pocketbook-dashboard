@@ -6,6 +6,7 @@ namespace App\Widget;
 
 use App\Chaban\BridgeClosure;
 use App\Chaban\ChabanClient;
+use App\Entity\Device;
 use App\Entity\Tile\ChabanTile;
 use App\Entity\Tile\Tile;
 use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
@@ -27,7 +28,7 @@ final class ChabanWidget implements WidgetInterface
         return 'widget/chaban.html.twig';
     }
 
-    public function data(Tile $tile, \DateTimeImmutable $at): ChabanView
+    public function data(Tile $tile, \DateTimeImmutable $at, ?Device $device = null): ChabanView
     {
         if (!$tile instanceof ChabanTile) {
             throw UnsupportedTileException::for($tile, ChabanTile::class);

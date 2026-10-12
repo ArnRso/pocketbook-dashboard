@@ -62,8 +62,10 @@ risqué). `composer fix` corrige automatiquement le style.
 
 ## Application de la liseuse
 
-Une application C minimale (14 Ko) : elle se connecte au Wi-Fi, télécharge l'écran avec sa clé, l'affiche
-en plein écran et revient le chercher après le délai annoncé par le serveur. Sur batterie, le Wi-Fi est
+Une application C minimale (14 Ko) : elle se connecte au Wi-Fi, télécharge l'écran avec sa clé en
+transmettant son niveau de batterie (affiché dans la tuile date et heure et dans l'admin), l'affiche en plein
+écran et revient le chercher après le délai annoncé par le serveur. La tuile date et heure indique la plage
+pendant laquelle l'écran reste affiché (18:27 – 18:37), ou l'heure seule si la liseuse se rafraîchit chaque minute. Sur batterie, le Wi-Fi est
 coupé entre deux écrans.
 
 | Action | Effet |

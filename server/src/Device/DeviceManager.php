@@ -58,6 +58,19 @@ class DeviceManager
         return $device;
     }
 
+    /**
+     * Enregistre l'état transmis par la liseuse avec sa demande d'écran.
+     */
+    public function report(Device $device, DeviceReport $report): void
+    {
+        if (null === $report->battery) {
+            return;
+        }
+
+        $device->reportBattery($report->battery, $report->charging);
+        $this->entityManager->flush();
+    }
+
     private static function hash(string $token): string
     {
         return hash('sha256', $token);

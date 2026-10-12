@@ -1,4 +1,19 @@
 <div class="widget clock">
     <div class="clock-date">{{ data.moment|format_datetime(pattern: 'EEEE d MMMM', locale: 'fr')|capitalize }}</div>
-    <div class="clock-meta muted">Mis à jour à {{ data.moment|date('H:i') }}</div>
+    <div class="clock-meta">
+        <span class="clock-time">{{ data.moment|date('H:i') }}{% if data.until %} – {{ data.until|date('H:i') }}{% endif %}</span>
+        {% if data.battery is not null %}
+            <span class="clock-battery">
+                <svg class="battery" viewBox="0 0 30 16" aria-hidden="true">
+                    <rect x="1" y="1" width="24" height="14" rx="3" fill="none" stroke="#000" stroke-width="2"/>
+                    <rect x="26" y="5" width="3" height="6" rx="1"/>
+                    <rect x="4" y="4" width="{{ (18 * data.battery / 100)|round(1) }}" height="8"/>
+                    {% if data.charging %}
+                        <path d="M15 2 L9 9 H13 L11 14 L17 7 H13 Z" fill="#000" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>
+                    {% endif %}
+                </svg>
+                {{ data.battery }} %
+            </span>
+        {% endif %}
+    </div>
 </div>

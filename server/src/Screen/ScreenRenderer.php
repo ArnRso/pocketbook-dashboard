@@ -6,6 +6,7 @@ namespace App\Screen;
 
 use App\Entity\Dashboard;
 use App\Entity\DashboardLayout;
+use App\Entity\Device;
 use App\Entity\Tile\Tile;
 use App\Widget\WidgetRenderer;
 use Sensiolabs\GotenbergBundle\Enumeration\ScreenshotFormat;
@@ -42,22 +43,24 @@ class ScreenRenderer
     /**
      * @param Dashboard|null          $dashboard null si la liseuse n'a pas de dashboard assigné
      * @param \DateTimeImmutable|null $at        moment à simuler pour un aperçu (tuiles affichées, heure) ; maintenant par défaut
+     * @param Device|null             $device    liseuse qui affichera l'écran (batterie, rafraîchissement)
      */
-    public function html(?Dashboard $dashboard, ?\DateTimeImmutable $at = null): string
+    public function html(?Dashboard $dashboard, ?\DateTimeImmutable $at = null, ?Device $device = null): string
     {
-        return $this->twig->render(self::TEMPLATE, $this->context($dashboard, $at, gotenberg: false));
+        return $this->twig->render(self::TEMPLATE, $this->context($dashboard, $at, $device, gotenberg: false));
     }
 
     /**
      * @param Dashboard|null          $dashboard null si la liseuse n'a pas de dashboard assigné
      * @param \DateTimeImmutable|null $at        moment à simuler pour un aperçu ; maintenant par défaut
+     * @param Device|null             $device    liseuse qui affichera l'écran (batterie, rafraîchissement)
      *
      * @return string image PNG en niveaux de gris
      */
-    public function png(?Dashboard $dashboard, ?\DateTimeImmutable $at = null): string
+    public function png(?Dashboard $dashboard, ?\DateTimeImmutable $at = null, ?Device $device = null): string
     {
         $builder = $this->gotenberg->html()
-            ->content(self::TEMPLATE, $this->context($dashboard, $at, gotenberg: true))
+            ->content(self::TEMPLATE, $this->context($dashboard, $at, $device, gotenberg: true))
             ->width($this->width)
             ->height($this->height)
             ->format(ScreenshotFormat::Png);
@@ -81,10 +84,10 @@ class ScreenRenderer
      *
      * @return array{generatedAt: \DateTimeImmutable, dashboard: ?Dashboard, tiles: list<RenderedTile>, rows: list<LayoutRow>, gotenberg: bool}
      */
-    private function context(?Dashboard $dashboard, ?\DateTimeImmutable $at, bool $gotenberg): array
+    private function context(?Dashboard $dashboard, ?\DateTimeImmutable $at, ?Device $device, bool $gotenberg): array
     {
         $moment = $at ?? $this->clock->now();
-        $tiles = $this->render($dashboard?->tilesVisibleAt($moment) ?? [], $moment);
+        $tiles = $this->render($dashboard?->tilesVisibleAt($moment) ?? [], $moment, $device);
 
         return [
             'generatedAt' => $moment,
@@ -102,11 +105,11 @@ class ScreenRenderer
      *
      * @return list<RenderedTile>
      */
-    private function render(array $tiles, \DateTimeImmutable $moment): array
+    private function render(array $tiles, \DateTimeImmutable $moment, ?Device $device): array
     {
         $rendered = [];
         foreach ($tiles as $tile) {
-            $html = $this->widgets->render($tile, $moment);
+            $html = $this->widgets->render($tile, $moment, $device);
             if (null !== $html) {
                 $rendered[] = new RenderedTile($tile, $html);
             }

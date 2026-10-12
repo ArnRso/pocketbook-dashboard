@@ -104,9 +104,24 @@ static void builds_the_screen_url(void)
     pbd_config_parse("server_url=https://a.example/\ntoken=x\n", &config);
     char url[64];
 
-    CHECK_INT((long long)strlen("https://a.example/api/v1/screen"), pbd_config_screen_url(&config, url, sizeof(url)));
+    const char *expected = "https://a.example/api/v1/screen?battery=87&charging=0";
+    CHECK_INT((long long)strlen(expected), pbd_config_screen_url(&config, 87, 0, url, sizeof(url)));
+    CHECK_STR(expected, url);
+    pbd_config_screen_url(&config, 100, 2, url, sizeof(url));
+    CHECK_STR("https://a.example/api/v1/screen?battery=100&charging=1", url);
+    CHECK_INT(-1, pbd_config_screen_url(&config, 87, 0, url, 10));
+}
+
+static void omits_an_unknown_battery_level(void)
+{
+    pbd_config config;
+    pbd_config_parse("server_url=https://a.example/\ntoken=x\n", &config);
+    char url[64];
+
+    pbd_config_screen_url(&config, -1, 0, url, sizeof(url));
     CHECK_STR("https://a.example/api/v1/screen", url);
-    CHECK_INT(-1, pbd_config_screen_url(&config, url, 10));
+    pbd_config_screen_url(&config, 101, 1, url, sizeof(url));
+    CHECK_STR("https://a.example/api/v1/screen", url);
 }
 
 static void every_status_has_a_message(void)
@@ -128,5 +143,6 @@ void test_config(void)
     formats_a_file_that_parses_back();
     user_input_is_trimmed_then_validated();
     builds_the_screen_url();
+    omits_an_unknown_battery_level();
     every_status_has_a_message();
 }

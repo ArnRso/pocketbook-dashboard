@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Widget;
 
+use App\Entity\Device;
 use App\Entity\Tile\Tile;
 use App\Entity\Tile\WeatherTile;
 use App\Weather\ForecastProvider;
@@ -19,7 +20,7 @@ abstract class AbstractWeatherWidget implements WidgetInterface
     ) {
     }
 
-    public function data(Tile $tile, \DateTimeImmutable $at): WeatherView
+    public function data(Tile $tile, \DateTimeImmutable $at, ?Device $device = null): WeatherView
     {
         if (!$tile instanceof WeatherTile) {
             throw UnsupportedTileException::for($tile, WeatherTile::class);

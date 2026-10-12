@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Widget;
 
+use App\Entity\Device;
 use App\Entity\Tile\CommuteTile;
 use App\Entity\Tile\Tile;
 use App\Traffic\Commute;
@@ -30,7 +31,7 @@ final class CommuteWidget implements WidgetInterface
     /**
      * Le temps de parcours reflète toujours le trafic actuel, y compris pour un aperçu.
      */
-    public function data(Tile $tile, \DateTimeImmutable $at): Commute
+    public function data(Tile $tile, \DateTimeImmutable $at, ?Device $device = null): Commute
     {
         if (!$tile instanceof CommuteTile) {
             throw UnsupportedTileException::for($tile, CommuteTile::class);

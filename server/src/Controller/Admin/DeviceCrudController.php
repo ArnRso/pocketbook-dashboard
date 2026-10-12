@@ -66,6 +66,9 @@ class DeviceCrudController extends AbstractCrudController
             ->hideOnForm();
         yield DateTimeField::new('lastSeenAt', 'Dernière connexion')
             ->hideOnForm();
+        yield IntegerField::new('batteryLevel', 'Batterie')
+            ->formatValue(static fn (?int $level, Device $device): string => null === $level ? '' : \sprintf('%d %%%s', $level, $device->isCharging() ? ' (en charge)' : ''))
+            ->hideOnForm();
     }
 
     #[AdminRoute('/{id}/token', name: 'token', options: ['methods' => ['GET', 'POST']])]

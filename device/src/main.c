@@ -263,7 +263,7 @@ static void refresh(void)
     }
 
     pbd_fetch_result result;
-    int fetched = pbd_fetch_screen(&config, SCREEN_FILE, &result);
+    int fetched = pbd_fetch_screen(&config, GetBatteryPower(), IsCharging(), SCREEN_FILE, &result);
     if (fetched == 0) {
         check_for_update_daily();
     }

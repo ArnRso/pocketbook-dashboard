@@ -36,8 +36,9 @@ int pbd_config_format(const pbd_config *config, char *out, size_t size);
 pbd_config_status pbd_config_set_url(pbd_config *config, const char *url);
 pbd_config_status pbd_config_set_token(pbd_config *config, const char *token);
 
-/* Adresse de l'écran à afficher : <server_url>/api/v1/screen. Renvoie -1 si out est trop petit. */
-int pbd_config_screen_url(const pbd_config *config, char *out, size_t size);
+/* Adresse de l'écran à afficher : <server_url>/api/v1/screen?battery=87&charging=0, sans le niveau de
+ * batterie s'il est inconnu (hors de 0 à 100). Renvoie -1 si out est trop petit. */
+int pbd_config_screen_url(const pbd_config *config, int battery, int charging, char *out, size_t size);
 
 /* Explication lisible par l'utilisateur. */
 const char *pbd_config_status_message(pbd_config_status status);

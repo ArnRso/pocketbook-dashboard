@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Widget;
 
+use App\Entity\Device;
 use App\Entity\Tile\ReminderTile;
 use App\Entity\Tile\Tile;
 use App\Repository\ReminderRepository;
@@ -22,7 +23,7 @@ final class ReminderWidget implements WidgetInterface
         return 'widget/reminders.html.twig';
     }
 
-    public function data(Tile $tile, \DateTimeImmutable $at): ReminderView
+    public function data(Tile $tile, \DateTimeImmutable $at, ?Device $device = null): ReminderView
     {
         if (!$tile instanceof ReminderTile) {
             throw UnsupportedTileException::for($tile, ReminderTile::class);

@@ -53,7 +53,9 @@ final class PreviewTest extends FunctionalTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorCount(5, '.tile');
         self::assertSelectorTextContains('.tile-clock .clock-date', 'Lundi 12 octobre');
-        self::assertSelectorTextContains('.tile-clock .clock-meta', 'Mis à jour à 13:20');
+        // Sans liseuse qui affiche ce dashboard : l'heure seule, sans batterie
+        self::assertSelectorTextSame('.tile-clock .clock-time', '13:20');
+        self::assertSelectorNotExists('.clock-battery');
         self::assertSelectorTextContains('.tile-current_weather .current-temp', '16°');
         self::assertSelectorTextContains('.tile-current_weather .current-condition', 'Ciel dégagé');
         self::assertSelectorTextContains('.tile-rain .tile-title', 'Pluie · Maison');
@@ -65,6 +67,40 @@ final class PreviewTest extends FunctionalTestCase
         self::assertSelectorTextContains('.tile-commute', 'Arrivée vers 13:39');
         self::assertSelectorTextContains('.tile-commute', '9,6 km par Boulevard Périphérique Nord');
         self::assertSelectorNotExists('.unavailable');
+    }
+
+    public function testPreviewShowsTheBatteryAndRefreshOfTheDeviceShowingTheDashboard(): void
+    {
+        [$device] = $this->createDevice(dashboard: $this->createDashboard());
+        $device->reportBattery(42, false);
+        $this->entityManager()->flush();
+        $this->logIn();
+
+        $this->client->request('GET', '/preview');
+
+        // La liseuse se rafraîchit toutes les 10 minutes : l'écran vaut jusqu'à 13:30
+        self::assertSelectorTextSame('.tile-clock .clock-time', '13:20 – 13:30');
+        self::assertSelectorTextSame('.tile-clock .clock-battery', '42 %');
+        self::assertSelectorNotExists('.clock-battery path');
+
+        $device->reportBattery(43, true);
+        $this->entityManager()->flush();
+        $this->client->request('GET', '/preview');
+
+        self::assertSelectorExists('.clock-battery path');
+    }
+
+    public function testDisabledDeviceIsIgnoredByThePreview(): void
+    {
+        [$device] = $this->createDevice(enabled: false, dashboard: $this->createDashboard());
+        $device->reportBattery(42, false);
+        $this->entityManager()->flush();
+        $this->logIn();
+
+        $this->client->request('GET', '/preview');
+
+        self::assertSelectorTextSame('.tile-clock .clock-time', '13:20');
+        self::assertSelectorNotExists('.clock-battery');
     }
 
     public function testTilesArePlacedOnTheGrid(): void
@@ -178,7 +214,7 @@ final class PreviewTest extends FunctionalTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('.clock-date', 'Mardi 13 octobre');
-        self::assertSelectorTextContains('.clock-meta', 'Mis à jour à 21:30');
+        self::assertSelectorTextSame('.clock-time', '21:30');
         self::assertSelectorNotExists('.tile-commute');
         // La météo reste celle du moment présent
         self::assertSelectorTextContains('.tile-current_weather .current-temp', '16°');
@@ -196,11 +232,11 @@ final class PreviewTest extends FunctionalTestCase
 
         $this->client->request('GET', '/preview?time=07:00');
         self::assertSelectorTextContains('.clock-date', 'Lundi 12 octobre');
-        self::assertSelectorTextContains('.clock-meta', 'Mis à jour à 07:00');
+        self::assertSelectorTextSame('.clock-time', '07:00');
 
         $this->client->request('GET', '/preview?day=7');
         self::assertSelectorTextContains('.clock-date', 'Dimanche 18 octobre');
-        self::assertSelectorTextContains('.clock-meta', 'Mis à jour à 13:20');
+        self::assertSelectorTextSame('.clock-time', '13:20');
     }
 
     public function testRemindersTileOnlyAppearsDuringAReminder(): void

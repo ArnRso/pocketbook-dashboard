@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Widget;
 
+use App\Entity\Device;
 use App\Entity\Place;
 use App\Entity\Tile\ClockTile;
 use App\Entity\Tile\CommuteTile;
@@ -19,6 +20,7 @@ use App\Weather\ForecastProvider;
 use App\Weather\OpenMeteoClient;
 use App\Widget\AbstractWeatherWidget;
 use App\Widget\CacheKey;
+use App\Widget\ClockView;
 use App\Widget\ClockWidget;
 use App\Widget\CommuteWidget;
 use App\Widget\CurrentWeatherWidget;
@@ -35,6 +37,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[CoversClass(ClockWidget::class)]
+#[CoversClass(ClockView::class)]
 #[CoversClass(AbstractWeatherWidget::class)]
 #[CoversClass(CurrentWeatherWidget::class)]
 #[CoversClass(RainWidget::class)]
@@ -52,7 +55,28 @@ final class WidgetsTest extends KernelTestCase
         $view = (new ClockWidget())->data(new ClockTile(), new \DateTimeImmutable(self::AT));
 
         self::assertSame(self::AT, $view->moment->format('Y-m-d H:i'));
+        self::assertNull($view->until);
+        self::assertNull($view->battery);
+        self::assertFalse($view->charging);
         self::assertSame('widget/clock.html.twig', (new ClockWidget())->template());
+    }
+
+    public function testClockShowsHowLongTheScreenIsValidAndTheBattery(): void
+    {
+        $device = (new Device())->setRefreshSeconds(600)->reportBattery(87, true);
+
+        $view = (new ClockWidget())->data(new ClockTile(), new \DateTimeImmutable(self::AT), $device);
+
+        self::assertSame('2026-10-12 08:10', $view->until?->format('Y-m-d H:i'));
+        self::assertSame([87, true], [$view->battery, $view->charging]);
+    }
+
+    public function testClockShowsOnlyTheTimeWhenTheScreenIsRefreshedEveryMinute(): void
+    {
+        $view = (new ClockWidget())->data(new ClockTile(), new \DateTimeImmutable(self::AT), (new Device())->setRefreshSeconds(60));
+
+        self::assertNull($view->until);
+        self::assertNull($view->battery);
     }
 
     public function testWeatherTilesOfTheSamePlaceShareOneForecast(): void

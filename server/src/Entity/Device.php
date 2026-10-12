@@ -47,6 +47,13 @@ class Device implements UserInterface
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $lastSeenAt = null;
 
+    /** Niveau de batterie en %, relevé à la dernière demande d'écran */
+    #[ORM\Column(nullable: true)]
+    private ?int $batteryLevel = null;
+
+    #[ORM\Column(options: ['default' => false])]
+    private bool $charging = false;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -135,6 +142,24 @@ class Device implements UserInterface
     public function setLastSeenAt(?\DateTimeImmutable $lastSeenAt): static
     {
         $this->lastSeenAt = $lastSeenAt;
+
+        return $this;
+    }
+
+    public function getBatteryLevel(): ?int
+    {
+        return $this->batteryLevel;
+    }
+
+    public function isCharging(): bool
+    {
+        return $this->charging;
+    }
+
+    public function reportBattery(int $level, bool $charging): static
+    {
+        $this->batteryLevel = $level;
+        $this->charging = $charging;
 
         return $this;
     }

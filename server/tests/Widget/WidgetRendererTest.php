@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Widget;
 
+use App\Entity\Device;
 use App\Entity\Tile\ClockTile;
 use App\Entity\Tile\Tile;
 use App\Widget\NothingToShowException;
@@ -89,7 +90,7 @@ final readonly class FakeWidget implements WidgetInterface
         return 'fake.html.twig';
     }
 
-    public function data(Tile $tile, \DateTimeImmutable $at): object
+    public function data(Tile $tile, \DateTimeImmutable $at, ?Device $device = null): object
     {
         return ($this->data)($tile, $at);
     }
