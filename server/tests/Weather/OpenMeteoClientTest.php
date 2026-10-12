@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Weather;
 
 use App\Geo\Coordinates;
+use App\Weather\DailyForecast;
 use App\Weather\HourlyForecast;
 use App\Weather\OpenMeteo\DailySeries;
 use App\Weather\OpenMeteo\Series;
@@ -22,6 +23,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 #[CoversClass(OpenMeteoClient::class)]
 #[CoversClass(DailySeries::class)]
+#[CoversClass(DailyForecast::class)]
 #[CoversClass(Series::class)]
 final class OpenMeteoClientTest extends KernelTestCase
 {
@@ -43,7 +45,7 @@ final class OpenMeteoClientTest extends KernelTestCase
             'hourly' => 'temperature_2m,precipitation,precipitation_probability,weather_code,is_day',
             'minutely_15' => 'precipitation',
             'forecast_minutely_15' => '8',
-            'daily' => 'temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset',
+            'daily' => 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset',
         ], self::query($response));
     }
 
@@ -62,6 +64,19 @@ final class OpenMeteoClientTest extends KernelTestCase
         self::assertSame(19.3, $report->temperatureMax);
         self::assertSame('2026-10-12 07:53', $report->sunrise->format('Y-m-d H:i'));
         self::assertSame('2026-10-12 19:00', $report->sunset->format('Y-m-d H:i'));
+    }
+
+    public function testTomorrow(): void
+    {
+        $tomorrow = $this->forecast('open-meteo-forecast-rainy.json')->tomorrow;
+
+        self::assertSame('2026-10-13', $tomorrow->date->format('Y-m-d'));
+        self::assertSame(['Pluie faible', 'rain'], [$tomorrow->condition->label, $tomorrow->condition->icon]);
+        self::assertSame([10.6, 19.1, 0.6, 20], [$tomorrow->temperatureMin, $tomorrow->temperatureMax, $tomorrow->precipitation, $tomorrow->precipitationProbability]);
+
+        $withoutPrecipitation = $this->forecast('open-meteo-forecast-without-precipitation.json')->tomorrow;
+
+        self::assertSame([0.0, 0], [$withoutPrecipitation->precipitation, $withoutPrecipitation->precipitationProbability]);
     }
 
     public function testTwelveHoursStartingWithTheCurrentOne(): void

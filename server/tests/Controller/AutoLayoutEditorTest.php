@@ -38,7 +38,7 @@ final class AutoLayoutEditorTest extends FunctionalTestCase
 
         // La date garde sa hauteur imposée (1/8), les autres lignes prennent ce dont leurs widgets ont besoin
         self::assertSelectorNotExists('.grid');
-        self::assertSame(['flex-grow: 0.125', 'flex-grow: 0.1875', 'flex-grow: 0.25'], $crawler->filter('.line')->each(static fn ($line): ?string => $line->attr('style')));
+        self::assertSame(['flex-grow: 0.125', 'flex-grow: 0.25', 'flex-grow: 0.25'], $crawler->filter('.line')->each(static fn ($line): ?string => $line->attr('style')));
         self::assertSame([['tile tile-clock'], ['tile tile-current_weather', 'tile tile-rain'], ['tile tile-hourly_forecast']], $crawler->filter('.line')->each(
             static fn ($line): array => $line->filter('.tile')->each(static fn ($tile): ?string => $tile->attr('class')),
         ));

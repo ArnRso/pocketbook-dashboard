@@ -24,6 +24,7 @@ final readonly class WeatherReport
         public float $precipitationYesterday,
         public \DateTimeImmutable $sunrise,
         public \DateTimeImmutable $sunset,
+        public DailyForecast $tomorrow,
         public array $hours,
         public array $nowcast,
     ) {

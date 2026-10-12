@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Weather;
 
 use App\Geo\Coordinates;
+use App\Weather\OpenMeteo\DailySeries;
 use App\Weather\OpenMeteo\ForecastResponse;
 use App\Weather\OpenMeteo\Series;
 use Symfony\Component\Clock\ClockInterface;
@@ -51,7 +52,7 @@ class OpenMeteoClient
                     'hourly' => 'temperature_2m,precipitation,precipitation_probability,weather_code,is_day',
                     'minutely_15' => 'precipitation',
                     'forecast_minutely_15' => 8,
-                    'daily' => 'temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset',
+                    'daily' => 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset',
                 ],
             ])->getContent();
 
@@ -88,8 +89,21 @@ class OpenMeteoClient
             precipitationYesterday: Series::at($daily->precipitationSum, $yesterday) ?? 0.0,
             sunrise: Series::at($daily->sunrise, $today),
             sunset: Series::at($daily->sunset, $today),
+            tomorrow: self::day($daily, $daily->indexOf($now->modify('+1 day'))),
             hours: $this->hours($forecast, $now),
             nowcast: $this->nowcast($forecast),
+        );
+    }
+
+    private static function day(DailySeries $daily, int $index): DailyForecast
+    {
+        return new DailyForecast(
+            date: Series::at($daily->time, $index),
+            condition: WeatherCondition::fromWmoCode(Series::at($daily->weatherCode, $index), true),
+            temperatureMin: Series::at($daily->temperatureMin, $index),
+            temperatureMax: Series::at($daily->temperatureMax, $index),
+            precipitation: Series::at($daily->precipitationSum, $index) ?? 0.0,
+            precipitationProbability: Series::at($daily->precipitationProbabilityMax, $index) ?? 0,
         );
     }
 

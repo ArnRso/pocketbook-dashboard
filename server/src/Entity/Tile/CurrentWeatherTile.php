@@ -33,6 +33,6 @@ class CurrentWeatherTile extends WeatherTile
 
     public function maxHeight(): int
     {
-        return 3;
+        return 4;
     }
 }

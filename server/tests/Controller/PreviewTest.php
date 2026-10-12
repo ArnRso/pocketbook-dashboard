@@ -58,6 +58,7 @@ final class PreviewTest extends FunctionalTestCase
         self::assertSelectorNotExists('.clock-battery');
         self::assertSelectorTextContains('.tile-current_weather .current-temp', '16°');
         self::assertSelectorTextContains('.tile-current_weather .current-condition', 'Ciel dégagé');
+        self::assertSelectorTextSame('.tile-current_weather .current-tomorrow', 'Demain Couvert 11° / 19° 0,0 mm · 3 %');
         self::assertSelectorTextContains('.tile-rain .tile-title', 'Pluie · Maison');
         self::assertSelectorTextContains('.tile-rain .rain-summary', 'Pas de pluie dans les 2 h');
         self::assertSelectorCount(12, '.tile-hourly_forecast .hour');

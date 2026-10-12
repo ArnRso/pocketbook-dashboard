@@ -179,7 +179,7 @@ final class TileTest extends KernelTestCase
     public function testEachTileTypeKnowsTheHeightItNeedsAtMost(): void
     {
         self::assertSame(
-            ['clock' => 2, 'current_weather' => 3, 'rain' => 2, 'hourly_forecast' => 4, 'commute' => 3, 'chaban' => 4, 'reminders' => 2, 'transit' => 2],
+            ['clock' => 2, 'current_weather' => 4, 'rain' => 2, 'hourly_forecast' => 4, 'commute' => 3, 'chaban' => 4, 'reminders' => 2, 'transit' => 2],
             array_map(static fn (string $class): int => new $class()->maxHeight(), Tile::TYPES),
         );
     }

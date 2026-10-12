@@ -1,14 +1,24 @@
 {% import 'widget/_icons.html.twig' as icons %}
 {% set weather = data.report %}
+{% set tomorrow = weather.tomorrow %}
 <div class="widget current">
-    {{ icons.weather(weather.condition.icon) }}
-    <div class="current-temp">{{ weather.temperature|round }}°</div>
-    <div class="current-details">
-        <div class="current-condition">{{ weather.condition.label }}</div>
-        <div class="muted">{{ data.place }}</div>
-        <div>Ressenti {{ weather.feelsLike|round }}°</div>
-        <div>Min {{ weather.temperatureMin|round }}° · Max <b>{{ weather.temperatureMax|round }}°</b></div>
-        <div>Vent {{ weather.windSpeed|round }} km/h · rafales {{ weather.windGusts|round }}</div>
-        <div>Humidité {{ weather.humidity }} % · Soleil {{ weather.sunrise|date('H:i') }} – {{ weather.sunset|date('H:i') }}</div>
+    <div class="current-now">
+        {{ icons.weather(weather.condition.icon) }}
+        <div class="current-temp">{{ weather.temperature|round }}°</div>
+        <div class="current-details">
+            <div class="current-condition">{{ weather.condition.label }}</div>
+            <div class="muted">{{ data.place }}</div>
+            <div>Ressenti {{ weather.feelsLike|round }}°</div>
+            <div>Min {{ weather.temperatureMin|round }}° · Max <b>{{ weather.temperatureMax|round }}°</b></div>
+            <div>Vent {{ weather.windSpeed|round }} km/h · rafales {{ weather.windGusts|round }}</div>
+            <div>Humidité {{ weather.humidity }} % · Soleil {{ weather.sunrise|date('H:i') }} – {{ weather.sunset|date('H:i') }}</div>
+        </div>
+    </div>
+    <div class="current-tomorrow">
+        <b>Demain</b>
+        {{ icons.weather(tomorrow.condition.icon) }}
+        <span class="current-tomorrow-condition">{{ tomorrow.condition.label }}</span>
+        <span>{{ tomorrow.temperatureMin|round }}° / <b>{{ tomorrow.temperatureMax|round }}°</b></span>
+        <span class="current-tomorrow-rain muted">{{ tomorrow.precipitation|number_format(1, ',') }} mm · {{ tomorrow.precipitationProbability }} %</span>
     </div>
 </div>

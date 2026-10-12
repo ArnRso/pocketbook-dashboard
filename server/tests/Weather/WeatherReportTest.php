@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Weather;
 
+use App\Weather\DailyForecast;
 use App\Weather\PrecipitationStep;
 use App\Weather\WeatherCondition;
 use App\Weather\WeatherReport;
@@ -68,6 +69,7 @@ final class WeatherReportTest extends TestCase
             precipitationYesterday: 0,
             sunrise: $start->setTime(7, 53),
             sunset: $start->setTime(19, 0),
+            tomorrow: new DailyForecast($start->modify('+1 day'), WeatherCondition::fromWmoCode(3, true), 11, 19, 0, 3),
             hours: [],
             nowcast: array_map(
                 static fn (int $i, float $mm) => new PrecipitationStep($start->modify(\sprintf('+%d minutes', 15 * $i)), $mm),

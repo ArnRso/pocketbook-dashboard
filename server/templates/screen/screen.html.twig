@@ -90,12 +90,28 @@
         .clock-battery .battery { width: 1.9em; height: 1em; }
 
         /* Météo actuelle */
-        .current { flex-direction: row; align-items: center; gap: 3cqw; }
-        .current .icon { flex: none; width: min(90cqh, 30cqw); height: min(90cqh, 30cqw); }
-        .current-temp { font-size: min(80cqh, 24cqw); font-weight: 800; line-height: .85; letter-spacing: -.04em; }
-        .current-details { margin-left: auto; font-size: min(11cqh, 2.8cqw); line-height: 1.4; text-align: right; }
+        /* La météo du moment en haut, celle du lendemain dans un bandeau en bas */
+        .current-now { display: flex; flex: 1; align-items: center; gap: 3cqw; min-height: 0; }
+        .current-now .icon { flex: none; width: min(68cqh, 30cqw); height: min(68cqh, 30cqw); }
+        .current-temp { font-size: min(60cqh, 24cqw); font-weight: 800; line-height: .85; letter-spacing: -.04em; }
+        .current-details { margin-left: auto; font-size: min(8.5cqh, 2.8cqw); line-height: 1.4; text-align: right; }
         .current-condition { font-size: 1.35em; font-weight: 800; }
-        @container (max-width: 760px) { .current-details { display: none; } }
+        .current-tomorrow {
+            display: flex;
+            flex: none;
+            align-items: center;
+            gap: .6em;
+            padding-top: 1.5cqh;
+            border-top: 2px solid #888;
+            font-size: min(11cqh, 3.2cqw);
+            white-space: nowrap;
+        }
+        .current-tomorrow .icon { flex: none; width: 1.5em; height: 1.5em; }
+        .current-tomorrow-rain { margin-left: auto; }
+        @container (max-width: 760px) {
+            .current-details, .current-tomorrow-condition { display: none; }
+            .current-tomorrow { font-size: 6cqw; }
+        }
 
         /* Pluie */
         .rain-body { display: flex; flex: 1; align-items: flex-end; justify-content: space-between; gap: 3cqw; }

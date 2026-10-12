@@ -12,6 +12,7 @@ final readonly class DailySeries
 {
     /**
      * @param list<\DateTimeImmutable> $time
+     * @param list<int>                $weatherCode
      * @param list<float>              $temperatureMax
      * @param list<float>              $temperatureMin
      * @param list<float|null>         $precipitationSum
@@ -22,6 +23,8 @@ final readonly class DailySeries
     public function __construct(
         #[Context([DateTimeNormalizer::FORMAT_KEY => Series::DATE_FORMAT])]
         public array $time,
+        #[SerializedName('weather_code')]
+        public array $weatherCode,
         #[SerializedName('temperature_2m_max')]
         public array $temperatureMax,
         #[SerializedName('temperature_2m_min')]
