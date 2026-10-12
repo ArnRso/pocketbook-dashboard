@@ -20,6 +20,7 @@ La liseuse ne fait qu'afficher une image : toute la logique est côté serveur. 
 | Dossier | Contenu |
 |---|---|
 | `server/` | Application Symfony 8.1 : widgets, API des liseuses, admin EasyAdmin |
+| `device/` | Application de la liseuse (C, SDK PocketBook / InkView) |
 | `.github/workflows/` | CI/CD : qualité et tests, image Docker, scan Trivy |
 
 ## Développement
@@ -55,6 +56,42 @@ risqué). `composer fix` corrige automatiquement le style.
   (`DisplayableException`) pour qu'une panne de Waze n'empêche pas d'afficher la météo.
 - Un nouveau widget = une classe `#[AsTaggedItem('nom')]` implémentant `WidgetInterface` + un template,
   puis `{{ widget('nom') }}` dans `templates/screen/screen.html.twig`.
+
+## Application de la liseuse
+
+Une application C minimale (14 Ko) : elle se connecte au Wi-Fi, télécharge l'écran avec sa clé, l'affiche
+en plein écran et revient le chercher après le délai annoncé par le serveur. Sur batterie, le Wi-Fi est
+coupé entre deux écrans.
+
+| Action | Effet |
+|---|---|
+| Appui court, touches page précédente/suivante | Rafraîchir maintenant |
+| Appui long, touche Menu | Menu : rafraîchir, adresse du serveur, clé d'accès, quitter |
+| Touche Retour | Quitter |
+
+La configuration est dans `system/config/pocketbook-dashboard.cfg` sur la liseuse (modifiable par USB ou
+depuis le menu de l'application) :
+
+```
+server_url = https://pocketbook.home-arnrso.com
+token = pbd_…
+```
+
+En cas de problème, le journal est dans `system/pocketbook-dashboard.log`.
+
+### Compilation
+
+La chaîne de compilation est une image Docker contenant le
+[SDK officiel](https://github.com/pocketbook/SDK_6.3.0) (branche 6.5, plateforme B288) :
+
+```bash
+cd device
+make docker-qa     # clang-format, cppcheck, tests natifs (sanitizers), compilation croisée
+make install       # copie dist/pocketbook-dashboard.app sur la liseuse branchée en USB
+```
+
+La CI exécute le même `make qa` et publie l'application de `main` dans la release
+[device-latest](https://github.com/ArnRso/pocketbook-dashboard/releases/tag/device-latest).
 
 ## Administration
 

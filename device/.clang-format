@@ -1,0 +1,9 @@
+BasedOnStyle: WebKit
+ColumnLimit: 140
+PointerAlignment: Right
+AllowShortFunctionsOnASingleLine: None
+BreakBeforeBinaryOperators: All
+IndentCaseLabels: false
+SortIncludes: true
+IncludeBlocks: Preserve
+AlignEscapedNewlines: Left

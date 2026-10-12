@@ -104,6 +104,46 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  device:
+    name: Device App (lint, tests & cross-compilation)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    defaults:
+      run:
+        working-directory: device
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      # Chaîne de compilation PocketBook (SDK officiel), identique à celle utilisée en local.
+      - name: Build SDK toolchain image
+        run: docker build --platform linux/amd64 -t pocketbook-dashboard-sdk .
+
+      # Même commande qu'en local (make docker-qa), avec AddressSanitizer : la CI tourne en x86 natif.
+      - name: Run quality checks, tests and cross-compilation
+        run: docker run --rm -v "$PWD":/src pocketbook-dashboard-sdk make qa VERSION="${GITHUB_SHA::7}"
+
+      - name: Upload application
+        uses: actions/upload-artifact@v7
+        with:
+          name: pocketbook-dashboard-app
+          path: device/dist/pocketbook-dashboard.app
+          if-no-files-found: error
+
+      # La dernière version de main est toujours téléchargeable depuis la release « device-latest ».
+      - name: Publish application
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view device-latest > /dev/null 2>&1 \
+            || gh release create device-latest --prerelease --title "Application liseuse" --notes "Dernière version de main."
+          gh release upload device-latest dist/pocketbook-dashboard.app --clobber
+          gh release edit device-latest --notes "Dernière version de main : ${GITHUB_SHA::7}. Copier pocketbook-dashboard.app dans le dossier applications de la liseuse."
+
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
