@@ -20,7 +20,6 @@ La liseuse ne fait qu'afficher une image : toute la logique est côté serveur. 
 | Dossier | Contenu |
 |---|---|
 | `server/` | Application Symfony 8.1 : widgets, API des liseuses, admin EasyAdmin |
-| `deploy/` | Stack Docker de production (image Docker Hub + Gotenberg, mise à jour par Watchtower) |
 | `.github/workflows/` | CI/CD : qualité et tests, image Docker, scan Trivy |
 
 ## Développement
@@ -68,21 +67,13 @@ risqué). `composer fix` corrige automatiquement le style.
 
 ## Déploiement
 
-La CI publie `arnrso/pocketbook-dashboard:latest` sur Docker Hub à chaque push sur `main`.
-Sur le serveur :
+La CI publie `arnrso/pocketbook-dashboard:latest` sur Docker Hub à chaque push sur `main`. La stack de
+production (application + Gotenberg) est décrite dans le dépôt Ansible, rôle `docker-ct`, et Watchtower
+la met à jour dans les 5 minutes qui suivent la publication d'une image. Les migrations sont jouées au
+démarrage du conteneur ; la base SQLite vit dans `/opt/stacks/pocketbook_dashboard/data`.
 
-```bash
-cp deploy/compose.yaml deploy/.env.example /srv/pocketbook-dashboard/
-cd /srv/pocketbook-dashboard && mv .env.example .env   # puis renseigner APP_SECRET
-docker compose up -d
-docker compose exec app bin/console app:user:create <identifiant>
-```
-
-Watchtower met ensuite à jour les conteneurs portant le label `com.centurylinklabs.watchtower.enable`.
-Les migrations sont jouées au démarrage du conteneur.
-
-Derrière Pangolin, `/api/` doit rester accessible sans l'authentification de Pangolin : la liseuse
-s'authentifie avec sa propre clé. Le reste du site est protégé par la connexion de l'application.
+Pangolin publie l'application sans SSO : la liseuse s'authentifie avec sa clé et l'admin avec la
+connexion de l'application.
 
 ## Waze
 
