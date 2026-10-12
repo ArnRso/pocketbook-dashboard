@@ -23,6 +23,12 @@ framework:
             bordeaux_metropole.client:
                 base_uri: 'https://opendata.bordeaux-metropole.fr'
                 timeout: 20
+            # API SIRI-Lite du réseau TBM (passages en temps réel)
+            tbm.client:
+                base_uri: 'https://bdx.mecatran.com'
+                timeout: 20
+                headers:
+                    Accept: 'application/json'
 
 when@prod:
     framework:

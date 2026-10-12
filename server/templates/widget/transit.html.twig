@@ -1,0 +1,19 @@
+<div class="widget transit">
+    <div class="tile-title">Prochains passages TBM</div>
+    <ul class="transit-boards">
+        {% for board in data.boards %}
+            <li>
+                <span class="transit-line">{{ board.stop.lineCode }}</span>
+                <span class="transit-stop">{{ board.stop.stopName }} <span class="muted">→ {{ board.stop.destination }}</span></span>
+                <span class="transit-times">
+                    {% for passage in board.passages %}
+                        {# Horaire théorique, sans suivi en temps réel : en gris #}
+                        <b class="{{ passage.realtime ? '' : 'muted' }}">{{ passage.time|date('H:i') }}</b>
+                    {% else %}
+                        <span class="muted">Aucun passage</span>
+                    {% endfor %}
+                </span>
+            </li>
+        {% endfor %}
+    </ul>
+</div>

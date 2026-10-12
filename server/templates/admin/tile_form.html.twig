@@ -25,6 +25,11 @@
             {% if form.place is defined %}{{ form_row(form.place) }}{% endif %}
             {% if form.trip is defined %}{{ form_row(form.trip) }}{% endif %}
             {% if form.days is defined %}<div style="width: 14rem">{{ form_row(form.days) }}</div>{% endif %}
+            {% if form.stops is defined %}
+                {{ form_row(form.stops) }}
+                <p class="form-text mt-n2">Les arrêts se gèrent dans la rubrique <a href="{{ ea_url().setController('App\\Controller\\Admin\\TransitStopCrudController') }}">Arrêts TBM</a>.</p>
+                <div style="width: 14rem">{{ form_row(form.departures) }}</div>
+            {% endif %}
             {% if form.autoWidth is defined %}
                 <div class="d-flex flex-wrap gap-3">
                     <div style="width: 12rem">{{ form_row(form.autoWidth) }}</div>

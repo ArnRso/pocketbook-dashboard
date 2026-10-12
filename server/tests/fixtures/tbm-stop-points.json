@@ -1,0 +1,8 @@
+{"Siri": {"StopPointsDelivery": {"ResponseTimestamp": "2026-10-12T11:20:00Z", "Version": "2.0", "Status": true, "AnnotatedStopPointRef": [
+    {"StopPointRef": {"value": "bordeaux:StopPoint:BP:3696:LOC"}, "StopAreaRef": {"value": "bordeaux:StopPoint:BP:TPALMER:LOC"}, "StopName": {"value": "Palmer", "lang": "fr"}, "Lines": [{"value": "bordeaux:Line:163:LOC"}, {"value": "bordeaux:Line:59:LOC"}], "Location": {"latitude": 44.862241, "longitude": -0.519699}},
+    {"StopPointRef": {"value": "bordeaux:StopPoint:BP:3697:LOC"}, "StopAreaRef": {"value": "bordeaux:StopPoint:BP:TPALMER:LOC"}, "StopName": {"value": "Palmer", "lang": "fr"}, "Lines": [{"value": "bordeaux:Line:59:LOC"}, {"value": "bordeaux:Line:163:LOC"}], "Location": {"latitude": 44.862212, "longitude": -0.51976}},
+    {"StopPointRef": {"value": "bordeaux:StopPoint:BP:15062:LOC"}, "StopName": {"value": "Palmer", "lang": "fr"}, "Lines": [], "Location": {"latitude": 44.86244365, "longitude": -0.51955926}},
+    {"StopPointRef": {"value": "bordeaux:StopPoint:BP:2303:LOC"}, "StopAreaRef": {"value": "bordeaux:StopPoint:BP:BELCIER:LOC"}, "StopName": {"value": "Belcier", "lang": "fr"}, "Lines": [], "Location": {"latitude": 44.82578205, "longitude": -0.55458181}},
+    {"StopPointRef": {"value": "bordeaux:StopPoint:BP:1001:LOC"}, "StopAreaRef": {"value": "bordeaux:StopPoint:BP:GARE1:LOC"}, "StopName": {"value": "Gare", "lang": "fr"}, "Lines": [{"value": "bordeaux:Line:01:LOC"}], "Location": {"latitude": 44.8, "longitude": -0.5}},
+    {"StopPointRef": {"value": "bordeaux:StopPoint:BP:1002:LOC"}, "StopAreaRef": {"value": "bordeaux:StopPoint:BP:GARE2:LOC"}, "StopName": {"value": "Gare", "lang": "fr"}, "Lines": [{"value": "bordeaux:Line:01:LOC"}], "Location": {"latitude": 44.9, "longitude": -0.6}}
+]}}}

@@ -166,6 +166,23 @@
             .chaban-reason { display: none; }
         }
 
+        /* Prochains passages TBM */
+        .transit-boards { list-style: none; overflow: hidden; font-size: clamp(20px, min(14cqh, 5cqw), 40px); }
+        .transit-boards li { display: flex; align-items: center; gap: .6em; padding: .25em 0; border-top: 2px solid #888; white-space: nowrap; }
+        .transit-line {
+            flex: none;
+            min-width: 1.8em;
+            padding: .05em .3em;
+            border-radius: 8px;
+            background: #000;
+            color: #fff;
+            font-weight: 800;
+            text-align: center;
+        }
+        .transit-stop { overflow: hidden; text-overflow: ellipsis; }
+        .transit-times { display: flex; gap: .8em; margin-left: auto; }
+        @container (max-width: 600px) { .transit-stop .muted { display: none; } }
+
         /* Rappels */
         .reminder-list { list-style: none; overflow: hidden; font-size: clamp(22px, min(26cqh, 6cqw), 56px); }
         .reminder-list li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 .6em; padding: .1em 0; }

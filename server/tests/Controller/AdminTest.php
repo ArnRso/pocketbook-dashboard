@@ -57,6 +57,8 @@ final class AdminTest extends FunctionalTestCase
         yield 'nouveau lieu' => ['/admin/place/new', 'Ajouter un lieu'];
         yield 'trajets' => ['/admin/trip', 'Trajets'];
         yield 'nouveau trajet' => ['/admin/trip/new', 'Ajouter un trajet'];
+        yield 'arrêts TBM' => ['/admin/transit-stop', 'Arrêts TBM'];
+        yield 'nouvel arrêt TBM' => ['/admin/transit-stop/new', 'Ajouter un arrêt TBM'];
         yield 'rappels' => ['/admin/reminder', 'Rappels'];
         yield 'nouveau rappel' => ['/admin/reminder/new', 'Ajouter un rappel'];
         yield 'liseuses' => ['/admin/device', 'Liseuses'];

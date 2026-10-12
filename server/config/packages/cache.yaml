@@ -11,6 +11,14 @@ framework:
             cache.bridge:
                 adapter: cache.app
                 default_lifetime: 3600
+            # Passages TBM : une requête par arrêt et par minute au plus
+            cache.transit:
+                adapter: cache.app
+                default_lifetime: 60
+            # Lignes et arrêts du réseau TBM
+            cache.transit_network:
+                adapter: cache.app
+                default_lifetime: 86400
 
 when@test:
     framework:

@@ -113,6 +113,6 @@ final class AutoLayout
      */
     private static function maxHeight(array $group): float
     {
-        return max(array_map(static fn (RenderedTile $tile): int => $tile->tile::maxHeight(), $group)) / Grid::ROWS;
+        return max(array_map(static fn (RenderedTile $tile): int => $tile->tile->maxHeight(), $group)) / Grid::ROWS;
     }
 }

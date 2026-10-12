@@ -32,6 +32,7 @@ abstract class Tile
         CommuteTile::WIDGET => CommuteTile::class,
         ChabanTile::WIDGET => ChabanTile::class,
         ReminderTile::WIDGET => ReminderTile::class,
+        TransitTile::WIDGET => TransitTile::class,
     ];
 
     #[ORM\Id]
@@ -96,7 +97,7 @@ abstract class Tile
      * Hauteur au-delà de laquelle le widget n'a plus rien à gagner, en lignes de la grille : en mise en
      * page automatique, une tuile de hauteur adaptative ne la dépasse pas et laisse la place aux autres.
      */
-    abstract public static function maxHeight(): int;
+    abstract public function maxHeight(): int;
 
     /** Description de la tuile dans l'éditeur, réglages compris. */
     public function describe(): string

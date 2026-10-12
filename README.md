@@ -109,7 +109,7 @@ La CI exécute le même `make qa` et publie l'application de `main`, zippée, da
 ## Administration
 
 - **Dashboards** : un dashboard est un écran composé de tuiles (date et heure, météo actuelle, pluie,
-  prévisions heure par heure, trajet, fermetures du pont Chaban-Delmas, rappels), chacune avec ses horaires
+  prévisions heure par heure, trajet, fermetures du pont Chaban-Delmas, prochains passages TBM, rappels), chacune avec ses horaires
   d'affichage. « Éditer les tuiles » permet de les ajouter et de les régler, avec l'aperçu réel à côté, au
   jour et à l'heure choisis. Deux mises en page :
   - **Automatique** (par défaut) : les tuiles affichées s'empilent dans leur ordre (flèches pour les
@@ -123,6 +123,10 @@ La CI exécute le même `make qa` et publie l'application de `main`, zippée, da
 - **Utilisateurs** : uniquement en ligne de commande. `app:user:create <identifiant>` génère et affiche
   un mot de passe ; relancée sur un utilisateur existant, elle en régénère un après confirmation.
 - **Lieux et trajets** : dans l'admin. Un lieu sans coordonnées est géocodé à partir de son adresse.
+- **Arrêts TBM** : un arrêt suivi dans une ligne et une direction (« Palmer, tram E vers Gare de Blanquefort »),
+  choisis dans les listes du réseau. La tuile « Prochains passages TBM » affiche les prochains passages d'un ou
+  plusieurs de ces arrêts, en temps réel par l'API SIRI-Lite ouverte de Bordeaux Métropole ; les horaires
+  seulement théoriques sont en gris.
 - **Rappels** : un texte et une ou plusieurs plages hebdomadaires, qui peuvent s'étendre sur plusieurs
   jours (du dimanche 16:00 au lundi 09:00). La tuile « Rappels » liste ceux en cours et disparaît quand
   il n'y en a aucun.

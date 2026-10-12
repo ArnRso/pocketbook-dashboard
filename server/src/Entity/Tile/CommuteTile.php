@@ -38,7 +38,7 @@ class CommuteTile extends Tile
         return 5;
     }
 
-    public static function maxHeight(): int
+    public function maxHeight(): int
     {
         return 3;
     }

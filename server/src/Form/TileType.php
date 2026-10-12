@@ -10,7 +10,9 @@ use App\Entity\Tile\CommuteTile;
 use App\Entity\Tile\Tile;
 use App\Entity\Tile\TileSize;
 use App\Entity\Tile\TileWidth;
+use App\Entity\Tile\TransitTile;
 use App\Entity\Tile\WeatherTile;
+use App\Entity\TransitStop;
 use App\Entity\Trip;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -52,6 +54,20 @@ final class TileType extends AbstractType
                 'label' => 'Nombre de jours à venir',
                 'attr' => ['min' => 1, 'max' => ChabanTile::MAX_DAYS],
             ]);
+        }
+        if ($tile instanceof TransitTile) {
+            $builder
+                ->add('stops', EntityType::class, [
+                    'label' => 'Arrêts',
+                    'class' => TransitStop::class,
+                    'multiple' => true,
+                    'expanded' => true,
+                    'by_reference' => false,
+                ])
+                ->add('departures', IntegerType::class, [
+                    'label' => 'Passages affichés par arrêt',
+                    'attr' => ['min' => 1, 'max' => TransitTile::MAX_DEPARTURES],
+                ]);
         }
         if (true === ($options['auto_layout'] ?? false)) {
             $builder

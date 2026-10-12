@@ -16,6 +16,7 @@ use App\Entity\Tile\HourlyForecastTile;
 use App\Entity\Tile\RainTile;
 use App\Entity\Trip;
 use App\Entity\User;
+use App\Tests\Transit\TbmFixtures;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -24,7 +25,7 @@ use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
 /**
- * Remplace les API externes (Open-Meteo, Waze, Gotenberg) par des réponses enregistrées.
+ * Remplace les API externes (Open-Meteo, Waze, Bordeaux Métropole, TBM, Gotenberg) par des réponses enregistrées.
  */
 abstract class FunctionalTestCase extends WebTestCase
 {
@@ -53,6 +54,7 @@ abstract class FunctionalTestCase extends WebTestCase
             ? $this->autocompleteResponse
             : $this->routingResponse,
         ));
+        $container->set('tbm.client', TbmFixtures::http());
         $container->set('bordeaux_metropole.client', new MockHttpClient(static fn (): MockResponse => self::fixture('chaban-closures.json'), 'https://opendata.bordeaux-metropole.fr'));
         $container->set('gotenberg.client', new MockHttpClient(static fn (string $method, string $url): MockResponse => str_ends_with($url, '/version')
             ? new MockResponse('8.25.0')

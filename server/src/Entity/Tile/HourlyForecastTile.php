@@ -31,7 +31,7 @@ class HourlyForecastTile extends WeatherTile
         return 4;
     }
 
-    public static function maxHeight(): int
+    public function maxHeight(): int
     {
         return 4;
     }

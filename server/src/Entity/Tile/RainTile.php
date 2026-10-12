@@ -31,7 +31,7 @@ class RainTile extends WeatherTile
         return 2;
     }
 
-    public static function maxHeight(): int
+    public function maxHeight(): int
     {
         return 2;
     }
