@@ -176,18 +176,24 @@ final class TileTest extends KernelTestCase
         self::assertCount(0, $this->validate($clock));
     }
 
-    public function testAutomaticLayoutSizeFollowsTheDefaultHeight(): void
+    public function testEachTileTypeKnowsTheHeightItNeedsAtMost(): void
     {
-        self::assertSame([TileWidth::Full, TileSize::Small], [(new ClockTile())->getAutoWidth(), (new ClockTile())->getAutoSize()]);
-        self::assertSame(TileSize::Medium, (new ChabanTile())->getAutoSize());
-        self::assertSame(TileSize::Large, (new HourlyForecastTile())->getAutoSize());
-        self::assertSame(TileSize::Large, (new CommuteTile())->getAutoSize());
+        self::assertSame(
+            ['clock' => 2, 'current_weather' => 3, 'rain' => 2, 'hourly_forecast' => 4, 'commute' => 3, 'chaban' => 4, 'reminders' => 2],
+            array_map(static fn (string $class): int => $class::maxHeight(), Tile::TYPES),
+        );
+    }
+
+    public function testAutomaticLayoutSizeIsAdaptiveUnlessImposed(): void
+    {
+        self::assertSame([null, null], [(new ClockTile())->getAutoWidth(), (new ClockTile())->getAutoSize()]);
 
         $tile = (new ClockTile())->setAutoWidth(TileWidth::Half)->setAutoSize(TileSize::Large);
 
         self::assertSame([TileWidth::Half, TileSize::Large], [$tile->getAutoWidth(), $tile->getAutoSize()]);
-        self::assertSame(['Demi-largeur', 'Grande'], [$tile->getAutoWidth()->label(), $tile->getAutoSize()->label()]);
-        self::assertSame(['Pleine largeur', 'Petite', 'Moyenne'], [TileWidth::Full->label(), TileSize::Small->label(), TileSize::Medium->label()]);
+        self::assertSame(['Pleine largeur', 'Demi-largeur'], [TileWidth::Full->label(), TileWidth::Half->label()]);
+        self::assertSame(['Petite', 'Moyenne', 'Grande'], array_map(static fn (TileSize $size): string => $size->label(), TileSize::cases()));
+        self::assertSame([0.125, 0.25, 0.375], array_map(static fn (TileSize $size): float => $size->fraction(), TileSize::cases()));
     }
 
     public function testSettingsAreRequired(): void

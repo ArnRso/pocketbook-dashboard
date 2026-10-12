@@ -43,6 +43,11 @@ class ChabanTile extends Tile
         return 3;
     }
 
+    public static function maxHeight(): int
+    {
+        return 4;
+    }
+
     public function getDays(): ?int
     {
         return $this->days;

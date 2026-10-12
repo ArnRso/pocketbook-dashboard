@@ -36,19 +36,20 @@ final class AutoLayoutEditorTest extends FunctionalTestCase
 
         $crawler = $this->client->request('GET', $this->preview($dashboard, '08:00'));
 
+        // La date garde sa hauteur imposée (1/8), les autres lignes prennent ce dont leurs widgets ont besoin
         self::assertSelectorNotExists('.grid');
-        self::assertSame(['flex-grow: 1', 'flex-grow: 2', 'flex-grow: 3'], $crawler->filter('.line')->each(static fn ($line): ?string => $line->attr('style')));
+        self::assertSame(['flex-grow: 0.125', 'flex-grow: 0.1875', 'flex-grow: 0.25'], $crawler->filter('.line')->each(static fn ($line): ?string => $line->attr('style')));
         self::assertSame([['tile tile-clock'], ['tile tile-current_weather', 'tile tile-rain'], ['tile tile-hourly_forecast']], $crawler->filter('.line')->each(
             static fn ($line): array => $line->filter('.tile')->each(static fn ($tile): ?string => $tile->attr('class')),
         ));
 
-        // Le soir, la météo actuelle est masquée : la pluie prend toute sa ligne
+        // Le soir, la météo actuelle est masquée : les prévisions comblent la place à côté de la pluie
         $crawler = $this->client->request('GET', $this->preview($dashboard, '21:00'));
 
-        self::assertSame([['tile tile-clock'], ['tile tile-rain'], ['tile tile-hourly_forecast']], $crawler->filter('.line')->each(
+        self::assertSame([['tile tile-clock'], ['tile tile-rain', 'tile tile-hourly_forecast']], $crawler->filter('.line')->each(
             static fn ($line): array => $line->filter('.tile')->each(static fn ($tile): ?string => $tile->attr('class')),
         ));
-        self::assertSame(['flex-grow: 1', 'flex-grow: 1', 'flex-grow: 3'], $crawler->filter('.line')->each(static fn ($line): ?string => $line->attr('style')));
+        self::assertSame(['flex-grow: 0.125', 'flex-grow: 0.25'], $crawler->filter('.line')->each(static fn ($line): ?string => $line->attr('style')));
     }
 
     public function testEditorListsEveryTileInOrder(): void
@@ -63,7 +64,8 @@ final class AutoLayoutEditorTest extends FunctionalTestCase
         self::assertSelectorNotExists('[data-grid-editor]');
         self::assertSelectorCount(4, '.tile-order > li');
         self::assertSelectorTextContains('.tile-order > li:nth-child(2)', 'Météo actuelle · Maison');
-        self::assertSelectorTextContains('.tile-order > li:nth-child(2)', 'Demi-largeur · hauteur moyenne · Tous les jours, 06:00–20:00');
+        self::assertSelectorTextContains('.tile-order > li:nth-child(1)', 'Largeur automatique · hauteur petite · Tous les jours');
+        self::assertSelectorTextContains('.tile-order > li:nth-child(2)', 'Demi-largeur · hauteur automatique · Tous les jours, 06:00–20:00');
         self::assertSelectorTextContains('.tile-order > li:nth-child(2) .badge', 'Masquée à ce moment');
         self::assertSelectorNotExists('.tile-order > li:nth-child(1) .badge');
         self::assertSelectorExists('.tile-order > li:first-child button[title="Monter"][disabled]');
@@ -107,14 +109,15 @@ final class AutoLayoutEditorTest extends FunctionalTestCase
         $this->logIn();
 
         $this->client->request('GET', $this->url($dashboard, \sprintf('/tiles/%d/edit', (int) $clock->getId())));
-        self::assertSelectorExists('select[name="tile[autoWidth]"] option[value="full"][selected]');
-        self::assertSelectorExists('select[name="tile[autoSize]"] option[value="1"][selected]');
+        self::assertSelectorTextSame('select[name="tile[autoWidth]"] option[value=""]', 'Automatique');
+        self::assertSelectorNotExists('select[name="tile[autoWidth]"] option[selected]');
+        self::assertSelectorTextSame('select[name="tile[autoSize]"] option[value="1"][selected]', 'Petite (1/8 de l\'écran)');
 
-        $this->client->submitForm('Enregistrer', ['tile[autoWidth]' => 'half', 'tile[autoSize]' => '3']);
+        $this->client->submitForm('Enregistrer', ['tile[autoWidth]' => 'half', 'tile[autoSize]' => '']);
 
         self::assertResponseRedirects($this->url($dashboard, '/grid'));
         $saved = $this->reload($dashboard)->orderedTiles()[0] ?? self::fail('Pas de tuile Date et heure.');
-        self::assertSame([TileWidth::Half, TileSize::Large], [$saved->getAutoWidth(), $saved->getAutoSize()]);
+        self::assertSame([TileWidth::Half, null], [$saved->getAutoWidth(), $saved->getAutoSize()]);
     }
 
     public function testWidthAndHeightAreNotAskedInGridLayout(): void
@@ -158,7 +161,7 @@ final class AutoLayoutEditorTest extends FunctionalTestCase
     }
 
     /**
-     * Entrée : date, météo actuelle (de 6 h à 20 h) et pluie côte à côte, prévisions.
+     * Entrée : date en petite hauteur, météo actuelle (de 6 h à 20 h) et pluie en demi-largeur, prévisions.
      */
     private function createAutoDashboard(): Dashboard
     {
@@ -168,7 +171,7 @@ final class AutoLayoutEditorTest extends FunctionalTestCase
 
         $dashboard = (new Dashboard())
             ->setName('Entrée')
-            ->addTile(new ClockTile())
+            ->addTile((new ClockTile())->setAutoSize(TileSize::Small))
             ->addTile($current)
             ->addTile((new RainTile())->setPlace($home)->setAutoWidth(TileWidth::Half))
             ->addTile((new HourlyForecastTile())->setPlace($home));

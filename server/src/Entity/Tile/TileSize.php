@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Entity\Tile;
 
 /**
- * Hauteur d'une tuile en mise en page automatique : les lignes affichées se partagent la hauteur de
- * l'écran en proportion de ce poids.
+ * Hauteur imposée à une tuile en mise en page automatique, en huitièmes de l'écran.
  */
 enum TileSize: int
 {
@@ -23,15 +22,9 @@ enum TileSize: int
         };
     }
 
-    /**
-     * Hauteur correspondant à un nombre de lignes de la grille.
-     */
-    public static function fromRows(int $rows): self
+    /** Part de la hauteur de l'écran */
+    public function fraction(): float
     {
-        return match (true) {
-            $rows <= 2 => self::Small,
-            3 === $rows => self::Medium,
-            default => self::Large,
-        };
+        return $this->value / 8;
     }
 }

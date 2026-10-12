@@ -63,11 +63,13 @@ abstract class Tile
     #[ORM\Column(options: ['default' => 0])]
     private int $position = 0;
 
-    #[ORM\Column(length: 8, enumType: TileWidth::class, options: ['default' => TileWidth::Full->value])]
-    private TileWidth $autoWidth = TileWidth::Full;
+    /** Largeur imposée en mise en page automatique ; null : la tuile s'adapte */
+    #[ORM\Column(length: 8, nullable: true, enumType: TileWidth::class)]
+    private ?TileWidth $autoWidth = null;
 
-    #[ORM\Column(enumType: TileSize::class, options: ['default' => TileSize::Medium->value])]
-    private TileSize $autoSize;
+    /** Hauteur imposée en mise en page automatique ; null : la tuile s'adapte */
+    #[ORM\Column(nullable: true, enumType: TileSize::class)]
+    private ?TileSize $autoSize = null;
 
     #[ORM\Embedded(class: Schedule::class)]
     #[Assert\Valid]
@@ -77,7 +79,6 @@ abstract class Tile
     {
         $this->width = static::defaultWidth();
         $this->height = static::defaultHeight();
-        $this->autoSize = TileSize::fromRows(static::defaultHeight());
         $this->schedule = new Schedule();
     }
 
@@ -90,6 +91,12 @@ abstract class Tile
     abstract protected static function defaultWidth(): int;
 
     abstract protected static function defaultHeight(): int;
+
+    /**
+     * Hauteur au-delà de laquelle le widget n'a plus rien à gagner, en lignes de la grille : en mise en
+     * page automatique, une tuile de hauteur adaptative ne la dépasse pas et laisse la place aux autres.
+     */
+    abstract public static function maxHeight(): int;
 
     /** Description de la tuile dans l'éditeur, réglages compris. */
     public function describe(): string
@@ -156,24 +163,24 @@ abstract class Tile
         return $this;
     }
 
-    public function getAutoWidth(): TileWidth
+    public function getAutoWidth(): ?TileWidth
     {
         return $this->autoWidth;
     }
 
-    public function setAutoWidth(TileWidth $autoWidth): static
+    public function setAutoWidth(?TileWidth $autoWidth): static
     {
         $this->autoWidth = $autoWidth;
 
         return $this;
     }
 
-    public function getAutoSize(): TileSize
+    public function getAutoSize(): ?TileSize
     {
         return $this->autoSize;
     }
 
-    public function setAutoSize(TileSize $autoSize): static
+    public function setAutoSize(?TileSize $autoSize): static
     {
         $this->autoSize = $autoSize;
 

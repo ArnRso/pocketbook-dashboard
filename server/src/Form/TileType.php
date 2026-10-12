@@ -59,11 +59,15 @@ final class TileType extends AbstractType
                     'label' => 'Largeur',
                     'class' => TileWidth::class,
                     'choice_label' => static fn (TileWidth $width): string => $width->label(),
+                    'placeholder' => 'Automatique',
+                    'required' => false,
                 ])
                 ->add('autoSize', EnumType::class, [
                     'label' => 'Hauteur',
                     'class' => TileSize::class,
-                    'choice_label' => static fn (TileSize $size): string => $size->label(),
+                    'choice_label' => static fn (TileSize $size): string => \sprintf('%s (%d/8 de l\'écran)', $size->label(), $size->value),
+                    'placeholder' => 'Automatique',
+                    'required' => false,
                 ]);
         }
 

@@ -38,6 +38,11 @@ class CommuteTile extends Tile
         return 5;
     }
 
+    public static function maxHeight(): int
+    {
+        return 3;
+    }
+
     public function getTrip(): ?Trip
     {
         return $this->trip;

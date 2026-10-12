@@ -57,7 +57,8 @@ risqué). `composer fix` corrige automatiquement le style.
   n'a rien à montrer lève `NothingToShowException` : sa tuile est retirée de l'écran.
 - Un nouveau type de tuile = une sous-classe de `Tile` (ses réglages) déclarée dans `Tile::TYPES`, un
   widget `#[AsTaggedItem(XxxTile::WIDGET)]` implémentant `WidgetInterface`, et son template. Les tailles
-  du template s'expriment en proportion de la tuile (`cqw`, `cqh`) pour s'adapter à toutes les tailles.
+  du template s'expriment en proportion de la tuile (`cqw`, `cqh`) pour s'adapter à toutes les tailles,
+  et la tuile déclare dans `maxHeight()` la hauteur au-delà de laquelle son widget n'a plus rien à gagner.
 
 ## Application de la liseuse
 
@@ -110,9 +111,10 @@ La CI exécute le même `make qa` et publie l'application de `main`, zippée, da
   d'affichage. « Éditer les tuiles » permet de les ajouter et de les régler, avec l'aperçu réel à côté, au
   jour et à l'heure choisis. Deux mises en page :
   - **Automatique** (par défaut) : les tuiles affichées s'empilent dans leur ordre (flèches pour les
-    monter ou descendre), deux tuiles en demi-largeur qui se suivent partagent une ligne, et les lignes se
-    partagent toute la hauteur de l'écran selon la hauteur de leurs tuiles (petite, moyenne, grande). Une
-    tuile masquée ou vide laisse sa place aux autres.
+    monter ou descendre), chacune la plus grande possible sans dépasser la hauteur dont son widget a
+    besoin. Une largeur (pleine, demi) ou une hauteur (1/8, 1/4, 3/8 de l'écran) peut être imposée à une
+    tuile ; les tuiles automatiques comblent la place restante, y compris à côté d'une tuile en
+    demi-largeur. Une tuile masquée ou vide laisse sa place aux autres.
   - **Grille libre** : chaque tuile a sa place sur une grille de 12 × 16 cases, où elle se glisse et se
     redimensionne à la souris. Deux tuiles peuvent occuper la même place si leurs horaires ne se recoupent
     pas (le trajet aller le matin, le retour le soir).

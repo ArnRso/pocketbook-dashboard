@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Entity\Tile;
 
 /**
- * Largeur d'une tuile en mise en page automatique : deux tuiles en demi-largeur qui se suivent
- * partagent la même ligne.
+ * Largeur imposée à une tuile en mise en page automatique.
  */
 enum TileWidth: string
 {

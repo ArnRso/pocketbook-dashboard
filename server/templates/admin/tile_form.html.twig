@@ -28,9 +28,9 @@
             {% if form.autoWidth is defined %}
                 <div class="d-flex flex-wrap gap-3">
                     <div style="width: 12rem">{{ form_row(form.autoWidth) }}</div>
-                    <div style="width: 12rem">{{ form_row(form.autoSize) }}</div>
+                    <div style="width: 16rem">{{ form_row(form.autoSize) }}</div>
                 </div>
-                <div class="form-text mt-n2 mb-3">Deux tuiles en demi-largeur qui se suivent partagent une ligne ; les lignes se partagent la hauteur de l'écran selon leur hauteur.</div>
+                <div class="form-text mt-n2 mb-3">En automatique, la tuile est la plus grande possible et comble la place laissée par les tuiles de taille imposée.</div>
             {% endif %}
 
             <fieldset class="mb-4">
