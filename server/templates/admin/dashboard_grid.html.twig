@@ -33,13 +33,13 @@
             line-height: 1.25;
             cursor: move;
         }
-        .grid-editor .tile-actions { display: flex; gap: 8px; margin-top: auto; }
-        .grid-editor .tile-actions button { padding: 0; border: 0; background: none; color: var(--bs-danger); }
+        .tile-actions { display: flex; gap: 8px; margin-top: auto; }
+        .tile-actions button { padding: 0; border: 0; background: none; color: var(--bs-danger); }
         .grid-preview { width: 100%; max-width: 560px; border: 1px solid var(--bs-border-color); border-radius: 8px; }
     </style>
 {% endblock %}
 
-{% block content_title %}Grille — {{ dashboard.name }}{% endblock %}
+{% block content_title %}{{ auto ? 'Tuiles' : 'Grille' }} — {{ dashboard.name }}{% endblock %}
 
 {% block page_actions %}
     <div class="dropdown">
@@ -63,6 +63,50 @@
         {{ form_row(form.preview, {label: 'Afficher ce moment'}) }}
     {{ form_end(form) }}
 
+    {% if auto %}
+        <p class="text-muted">
+            Mise en page automatique : les tuiles affichées {{ at|format_datetime(pattern: "EEEE 'à' HH:mm", locale: 'fr') }}
+            s'empilent dans cet ordre et occupent tout l'écran. Largeur et hauteur se règlent dans chaque tuile.
+        </p>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <ol class="list-group list-group-numbered tile-order">
+                    {% for tile in tiles %}
+                        <li class="list-group-item d-flex align-items-start gap-2 {{ tile.isVisibleAt(at) ? '' : 'text-muted' }}">
+                            <div class="me-auto">
+                                <strong>{{ tile.describe }}</strong>
+                                <div class="small">
+                                    {{ tile.autoWidth.label }} · hauteur {{ tile.autoSize.label|lower }} · {{ tile.schedule }}
+                                    {% if not tile.isVisibleAt(at) %}<span class="badge text-bg-secondary">Masquée à ce moment</span>{% endif %}
+                                </div>
+                                <div class="tile-actions small">
+                                    <a href="{{ path('admin_dashboard_tile_edit', {id: dashboard.id, tile: tile.id}) }}">Modifier</a>
+                                    <form method="post" action="{{ path('admin_dashboard_tile_delete', {id: dashboard.id, tile: tile.id}) }}" data-confirm="Supprimer la tuile « {{ tile.describe }} » ?">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('tile-delete-' ~ tile.id) }}">
+                                        <button type="submit">Supprimer</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% set ends = {up: loop.first, down: loop.last} %}
+                            {% for direction, icon in {up: 'fa-arrow-up', down: 'fa-arrow-down'} %}
+                                {% set disabled = ends[direction] %}
+                                <form method="post" action="{{ path('admin_dashboard_tile_shift', {id: dashboard.id, tile: tile.id, direction: direction, day: query.day, time: query.time}|filter(value => value is not null)) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('tile-shift-' ~ tile.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-secondary" title="{{ direction == 'up' ? 'Monter' : 'Descendre' }}" {{ disabled ? 'disabled' }}><i class="fa {{ icon }}"></i></button>
+                                </form>
+                            {% endfor %}
+                        </li>
+                    {% else %}
+                        <li class="list-group-item text-muted">Aucune tuile : ajoutez-en une.</li>
+                    {% endfor %}
+                </ol>
+            </div>
+            <div class="col-lg-6">
+                <img class="grid-preview" src="{{ path('app_preview_image', parameters) }}" alt="Aperçu du dashboard" data-grid-preview>
+            </div>
+        </div>
+    {% else %}
     <p class="text-muted">
         Tuiles affichées {{ at|format_datetime(pattern: "EEEE 'à' HH:mm", locale: 'fr') }}.
         Glissez une tuile pour la déplacer, tirez son coin inférieur droit pour la redimensionner.
@@ -106,5 +150,6 @@
                 </li>
             {% endfor %}
         </ul>
+    {% endif %}
     {% endif %}
 {% endblock %}

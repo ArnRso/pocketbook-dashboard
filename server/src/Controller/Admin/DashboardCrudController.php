@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Dashboard;
+use App\Entity\DashboardLayout;
 use App\Entity\Tile\Tile;
 use App\Form\PreviewType;
 use App\Form\TileType;
@@ -19,6 +20,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -62,7 +64,7 @@ class DashboardCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
-        $grid = Action::new('grid', 'Éditer la grille', 'fa fa-table-cells')
+        $grid = Action::new('grid', 'Éditer les tuiles', 'fa fa-table-cells')
             ->linkToCrudAction('grid');
 
         return $actions
@@ -73,6 +75,9 @@ class DashboardCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         yield TextField::new('name', 'Nom');
+        yield ChoiceField::new('layout', 'Mise en page')
+            ->renderExpanded()
+            ->setHelp('Automatique : les tuiles affichées s\'empilent dans leur ordre et occupent tout l\'écran. Grille libre : chaque tuile a sa place fixe.');
         yield IntegerField::new('tiles.count', 'Tuiles')
             ->hideOnForm();
     }
@@ -94,9 +99,11 @@ class DashboardCrudController extends AbstractCrudController
 
         return $this->render('admin/dashboard_grid.html.twig', [
             'dashboard' => $dashboard,
+            'auto' => DashboardLayout::Auto === $dashboard->getLayout(),
             'form' => $form,
             'query' => $query,
             'at' => $at,
+            'tiles' => $dashboard->orderedTiles(),
             'visible' => $dashboard->tilesVisibleAt($at),
             'hidden' => $dashboard->tilesHiddenAt($at),
             'types' => $this->tiles->types(),
@@ -125,6 +132,21 @@ class DashboardCrudController extends AbstractCrudController
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
+    /**
+     * Monte ou descend la tuile d'un rang dans la mise en page automatique.
+     */
+    #[AdminRoute('/{id}/tiles/{tile}/shift/{direction}', name: 'tile_shift', options: ['methods' => ['POST'], 'requirements' => ['direction' => 'up|down']])]
+    public function shiftTile(Dashboard $dashboard, #[MapEntity(mapping: self::TILE)] Tile $tile, string $direction, Request $request): RedirectResponse
+    {
+        if (!$this->isCsrfTokenValid('tile-shift-'.$tile->getId(), $request->getPayload()->getString('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        $this->tiles->shift($tile, 'up' === $direction ? -1 : 1);
+
+        return $this->redirectToRoute('admin_dashboard_grid', ['id' => $dashboard->getId(), ...$request->query->all()]);
+    }
+
     #[AdminRoute('/{id}/tiles/new/{widget}', name: 'tile_new', options: ['methods' => ['GET', 'POST'], 'requirements' => ['widget' => '[a-z_]+']])]
     public function newTile(Dashboard $dashboard, string $widget, Request $request): Response
     {
@@ -134,7 +156,7 @@ class DashboardCrudController extends AbstractCrudController
             throw $this->createNotFoundException($e->getMessage(), $e);
         }
 
-        $form = $this->createForm(TileType::class, $tile);
+        $form = $this->createForm(TileType::class, $tile, ['auto_layout' => DashboardLayout::Auto === $dashboard->getLayout()]);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             try {
@@ -156,7 +178,7 @@ class DashboardCrudController extends AbstractCrudController
     #[AdminRoute('/{id}/tiles/{tile}/edit', name: 'tile_edit', options: ['methods' => ['GET', 'POST']])]
     public function editTile(Dashboard $dashboard, #[MapEntity(mapping: self::TILE)] Tile $tile, Request $request): Response
     {
-        $form = $this->createForm(TileType::class, $tile);
+        $form = $this->createForm(TileType::class, $tile, ['auto_layout' => DashboardLayout::Auto === $dashboard->getLayout()]);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $this->tiles->save($tile);

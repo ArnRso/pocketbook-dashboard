@@ -6,6 +6,7 @@ namespace App\Tests\Controller;
 
 use App\Device\DeviceManager;
 use App\Entity\Dashboard;
+use App\Entity\DashboardLayout;
 use App\Entity\Device;
 use App\Entity\Place;
 use App\Entity\Tile\ClockTile;
@@ -85,8 +86,8 @@ abstract class FunctionalTestCase extends WebTestCase
     }
 
     /**
-     * Dashboard de démonstration : date, météo actuelle, pluie, prévisions et trajet Maison → Travail
-     * affiché de 6 h à 20 h.
+     * Dashboard de démonstration en grille libre : date, météo actuelle, pluie, prévisions et trajet
+     * Maison → Travail affiché de 6 h à 20 h.
      */
     protected function createDashboard(bool $withCoordinates = true): Dashboard
     {
@@ -102,6 +103,7 @@ abstract class FunctionalTestCase extends WebTestCase
 
         $dashboard = (new Dashboard())
             ->setName('Principal')
+            ->setLayout(DashboardLayout::Grid)
             ->addTile((new ClockTile())->place(1, 1, 12, 2))
             ->addTile((new CurrentWeatherTile())->setPlace($home)->place(1, 3, 12, 3))
             ->addTile((new RainTile())->setPlace($home)->place(1, 6, 12, 2))

@@ -105,13 +105,17 @@ La CI exécute le même `make qa` et publie l'application de `main`, zippée, da
 
 ## Administration
 
-- **Dashboards** : un dashboard est une grille de 12 × 16 cases où se placent des tuiles (date et heure,
-  météo actuelle, pluie, prévisions heure par heure, trajet, fermetures du pont Chaban-Delmas, rappels).
-  « Éditer la grille » permet de les ajouter,
-  de les glisser et de les redimensionner à la souris, avec l'aperçu réel à côté. Chaque tuile a ses
-  horaires d'affichage : deux tuiles peuvent occuper la même place si leurs horaires ne se recoupent pas
-  (le trajet aller le matin, le retour le soir). L'éditeur montre les tuiles visibles au jour et à l'heure
-  choisis.
+- **Dashboards** : un dashboard est un écran composé de tuiles (date et heure, météo actuelle, pluie,
+  prévisions heure par heure, trajet, fermetures du pont Chaban-Delmas, rappels), chacune avec ses horaires
+  d'affichage. « Éditer les tuiles » permet de les ajouter et de les régler, avec l'aperçu réel à côté, au
+  jour et à l'heure choisis. Deux mises en page :
+  - **Automatique** (par défaut) : les tuiles affichées s'empilent dans leur ordre (flèches pour les
+    monter ou descendre), deux tuiles en demi-largeur qui se suivent partagent une ligne, et les lignes se
+    partagent toute la hauteur de l'écran selon la hauteur de leurs tuiles (petite, moyenne, grande). Une
+    tuile masquée ou vide laisse sa place aux autres.
+  - **Grille libre** : chaque tuile a sa place sur une grille de 12 × 16 cases, où elle se glisse et se
+    redimensionne à la souris. Deux tuiles peuvent occuper la même place si leurs horaires ne se recoupent
+    pas (le trajet aller le matin, le retour le soir).
 - **Utilisateurs** : uniquement en ligne de commande. `app:user:create <identifiant>` génère et affiche
   un mot de passe ; relancée sur un utilisateur existant, elle en régénère un après confirmation.
 - **Lieux et trajets** : dans l'admin. Un lieu sans coordonnées est géocodé à partir de son adresse.

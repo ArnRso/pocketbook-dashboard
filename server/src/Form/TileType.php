@@ -8,17 +8,21 @@ use App\Entity\Place;
 use App\Entity\Tile\ChabanTile;
 use App\Entity\Tile\CommuteTile;
 use App\Entity\Tile\Tile;
+use App\Entity\Tile\TileSize;
+use App\Entity\Tile\TileWidth;
 use App\Entity\Tile\WeatherTile;
 use App\Entity\Trip;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Réglages d'une tuile : ceux de son type (lieu, trajet…) et ses horaires d'affichage.
+ * Réglages d'une tuile : ceux de son type (lieu, trajet…), sa taille en mise en page automatique et
+ * ses horaires d'affichage.
  *
  * @extends AbstractType<Tile>
  */
@@ -49,6 +53,19 @@ final class TileType extends AbstractType
                 'attr' => ['min' => 1, 'max' => ChabanTile::MAX_DAYS],
             ]);
         }
+        if (true === ($options['auto_layout'] ?? false)) {
+            $builder
+                ->add('autoWidth', EnumType::class, [
+                    'label' => 'Largeur',
+                    'class' => TileWidth::class,
+                    'choice_label' => static fn (TileWidth $width): string => $width->label(),
+                ])
+                ->add('autoSize', EnumType::class, [
+                    'label' => 'Hauteur',
+                    'class' => TileSize::class,
+                    'choice_label' => static fn (TileSize $size): string => $size->label(),
+                ]);
+        }
 
         $builder
             ->add('schedule', ScheduleType::class, ['label' => 'Affichage'])
@@ -60,6 +77,11 @@ final class TileType extends AbstractType
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(['data_class' => Tile::class]);
+        $resolver->setDefaults([
+            'data_class' => Tile::class,
+            // Largeur et hauteur de la tuile en mise en page automatique
+            'auto_layout' => false,
+        ]);
+        $resolver->setAllowedTypes('auto_layout', 'bool');
     }
 }

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Screen;
 
 use App\Entity\Dashboard;
+use App\Entity\DashboardLayout;
 use App\Entity\Tile\Tile;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
- * Modifications des tuiles d'un dashboard depuis l'éditeur de grille. Une modification n'est
+ * Modifications des tuiles d'un dashboard depuis l'éditeur. En grille libre, une modification n'est
  * enregistrée que si la grille reste valide : tuiles dans la grille, sans chevauchement aux mêmes horaires.
  */
 class TileEditor
@@ -46,10 +47,11 @@ class TileEditor
     }
 
     /**
-     * Ajoute la tuile à la première place libre aux mêmes horaires, en lisant la grille de gauche à
-     * droite puis de haut en bas.
+     * Ajoute la tuile en dernière position, et à la première place libre de la grille aux mêmes
+     * horaires, en lisant la grille de gauche à droite puis de haut en bas. En mise en page
+     * automatique, la grille ne sert que si le dashboard y passe : la tuile est ajoutée même sans place libre.
      *
-     * @throws TileLayoutException s'il n'y a plus de place pour la tuile
+     * @throws TileLayoutException s'il n'y a plus de place pour la tuile sur la grille d'un dashboard en grille libre
      */
     public function add(Dashboard $dashboard, Tile $tile): void
     {
@@ -57,20 +59,25 @@ class TileEditor
         $width = $tile->getWidth();
         $height = $tile->getHeight();
 
-        for ($row = 1; $row + $height - 1 <= Grid::ROWS; ++$row) {
-            for ($column = 1; $column + $width - 1 <= Grid::COLUMNS; ++$column) {
-                $tile->place($column, $row, $width, $height);
-                if (0 === \count($this->validator->validate($tile))) {
-                    $this->entityManager->persist($tile);
-                    $this->entityManager->flush();
-
-                    return;
-                }
+        if (!$this->placeOnFreeSpot($dashboard, $tile)) {
+            if (DashboardLayout::Grid === $dashboard->getLayout()) {
+                $dashboard->removeTile($tile);
+                throw new TileLayoutException(\sprintf('Plus de place libre de %d × %d cases à ces horaires : libérez de la place ou changez les horaires.', $width, $height));
             }
+            $tile->place(1, 1, $width, $height);
         }
 
-        $dashboard->removeTile($tile);
-        throw new TileLayoutException(\sprintf('Plus de place libre de %d × %d cases à ces horaires : libérez de la place ou changez les horaires.', $width, $height));
+        $this->entityManager->persist($tile);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Déplace la tuile d'un rang, avant (-1) ou après (1), dans la mise en page automatique.
+     */
+    public function shift(Tile $tile, int $direction): void
+    {
+        $tile->getDashboard()?->shiftTile($tile, $direction);
+        $this->entityManager->flush();
     }
 
     /**
@@ -103,5 +110,22 @@ class TileEditor
         $tile->getDashboard()?->removeTile($tile);
         $this->entityManager->remove($tile);
         $this->entityManager->flush();
+    }
+
+    private function placeOnFreeSpot(Dashboard $dashboard, Tile $tile): bool
+    {
+        $width = $tile->getWidth();
+        $height = $tile->getHeight();
+
+        for ($row = 1; $row + $height - 1 <= Grid::ROWS; ++$row) {
+            for ($column = 1; $column + $width - 1 <= Grid::COLUMNS; ++$column) {
+                $tile->place($column, $row, $width, $height);
+                if (!$dashboard->getTiles()->exists(static fn (int $key, Tile $other): bool => $other !== $tile && $tile->conflictsWith($other))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

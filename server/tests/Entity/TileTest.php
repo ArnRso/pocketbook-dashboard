@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Entity;
 
 use App\Entity\Dashboard;
+use App\Entity\DashboardLayout;
 use App\Entity\Place;
 use App\Entity\Tile\ChabanTile;
 use App\Entity\Tile\ClockTile;
@@ -13,6 +14,8 @@ use App\Entity\Tile\CurrentWeatherTile;
 use App\Entity\Tile\HourlyForecastTile;
 use App\Entity\Tile\RainTile;
 use App\Entity\Tile\Tile;
+use App\Entity\Tile\TileSize;
+use App\Entity\Tile\TileWidth;
 use App\Entity\Tile\WeatherTile;
 use App\Entity\Trip;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -29,6 +32,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 #[CoversClass(HourlyForecastTile::class)]
 #[CoversClass(CommuteTile::class)]
 #[CoversClass(ChabanTile::class)]
+#[CoversClass(TileWidth::class)]
+#[CoversClass(TileSize::class)]
 final class TileTest extends KernelTestCase
 {
     #[DataProvider('tiles')]
@@ -155,12 +160,34 @@ final class TileTest extends KernelTestCase
     {
         $clock = (new ClockTile())->place(1, 1, 12, 2);
         $weather = (new CurrentWeatherTile())->setPlace((new Place())->setLabel('Maison'))->place(1, 2, 12, 3);
-        (new Dashboard())->addTile($clock)->addTile($weather);
+        (new Dashboard())->setLayout(DashboardLayout::Grid)->addTile($clock)->addTile($weather);
 
         $violations = $this->validate($clock);
 
         self::assertCount(1, $violations);
         self::assertSame('Cette tuile chevauche « Météo actuelle · Maison » à des horaires communs.', $violations->get(0)->getMessage());
+    }
+
+    public function testOverlappingDoesNotMatterInAutomaticLayout(): void
+    {
+        $clock = (new ClockTile())->place(1, 1, 12, 2);
+        (new Dashboard())->addTile($clock)->addTile((new ClockTile())->place(1, 1, 12, 2));
+
+        self::assertCount(0, $this->validate($clock));
+    }
+
+    public function testAutomaticLayoutSizeFollowsTheDefaultHeight(): void
+    {
+        self::assertSame([TileWidth::Full, TileSize::Small], [(new ClockTile())->getAutoWidth(), (new ClockTile())->getAutoSize()]);
+        self::assertSame(TileSize::Medium, (new ChabanTile())->getAutoSize());
+        self::assertSame(TileSize::Large, (new HourlyForecastTile())->getAutoSize());
+        self::assertSame(TileSize::Large, (new CommuteTile())->getAutoSize());
+
+        $tile = (new ClockTile())->setAutoWidth(TileWidth::Half)->setAutoSize(TileSize::Large);
+
+        self::assertSame([TileWidth::Half, TileSize::Large], [$tile->getAutoWidth(), $tile->getAutoSize()]);
+        self::assertSame(['Demi-largeur', 'Grande'], [$tile->getAutoWidth()->label(), $tile->getAutoSize()->label()]);
+        self::assertSame(['Pleine largeur', 'Petite', 'Moyenne'], [TileWidth::Full->label(), TileSize::Small->label(), TileSize::Medium->label()]);
     }
 
     public function testSettingsAreRequired(): void

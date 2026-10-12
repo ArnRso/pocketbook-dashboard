@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity\Tile;
 
 use App\Entity\Dashboard;
+use App\Entity\DashboardLayout;
 use App\Entity\Schedule;
 use App\Repository\TileRepository;
 use App\Screen\Grid;
@@ -58,6 +59,16 @@ abstract class Tile
     #[Assert\Range(min: 1, max: Grid::ROWS)]
     private int $height;
 
+    /** Rang de la tuile en mise en page automatique */
+    #[ORM\Column(options: ['default' => 0])]
+    private int $position = 0;
+
+    #[ORM\Column(length: 8, enumType: TileWidth::class, options: ['default' => TileWidth::Full->value])]
+    private TileWidth $autoWidth = TileWidth::Full;
+
+    #[ORM\Column(enumType: TileSize::class, options: ['default' => TileSize::Medium->value])]
+    private TileSize $autoSize;
+
     #[ORM\Embedded(class: Schedule::class)]
     #[Assert\Valid]
     private Schedule $schedule;
@@ -66,6 +77,7 @@ abstract class Tile
     {
         $this->width = static::defaultWidth();
         $this->height = static::defaultHeight();
+        $this->autoSize = TileSize::fromRows(static::defaultHeight());
         $this->schedule = new Schedule();
     }
 
@@ -132,6 +144,42 @@ abstract class Tile
         return $this;
     }
 
+    public function getPosition(): int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(int $position): static
+    {
+        $this->position = $position;
+
+        return $this;
+    }
+
+    public function getAutoWidth(): TileWidth
+    {
+        return $this->autoWidth;
+    }
+
+    public function setAutoWidth(TileWidth $autoWidth): static
+    {
+        $this->autoWidth = $autoWidth;
+
+        return $this;
+    }
+
+    public function getAutoSize(): TileSize
+    {
+        return $this->autoSize;
+    }
+
+    public function setAutoSize(TileSize $autoSize): static
+    {
+        $this->autoSize = $autoSize;
+
+        return $this;
+    }
+
     public function getSchedule(): Schedule
     {
         return $this->schedule;
@@ -169,7 +217,10 @@ abstract class Tile
                 ->addViolation();
         }
 
-        foreach ($this->dashboard?->getTiles() ?? [] as $other) {
+        if (DashboardLayout::Grid !== $this->dashboard?->getLayout()) {
+            return;
+        }
+        foreach ($this->dashboard->getTiles() as $other) {
             if ($other !== $this && $this->conflictsWith($other)) {
                 $context->buildViolation(\sprintf('Cette tuile chevauche « %s » à des horaires communs.', $other->describe()))
                     ->addViolation();

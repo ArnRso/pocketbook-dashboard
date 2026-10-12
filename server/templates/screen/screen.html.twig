@@ -40,6 +40,11 @@
             grid-template-rows: repeat({{ constant('App\\Screen\\Grid::ROWS') }}, minmax(0, 1fr));
         }
 
+        /* Mise en page automatique : les lignes se partagent la hauteur selon leur poids (flex-grow) */
+        .lines { display: flex; flex-direction: column; width: 100%; height: 100%; padding: 10px; }
+        .line { display: flex; flex: 1 1 0; min-height: 0; }
+        .line > .tile { flex: 1 1 0; min-width: 0; }
+
         .tile {
             container-type: size;
             margin: 8px;
@@ -166,7 +171,19 @@
     </style>
 </head>
 <body>
-    {% if dashboard %}
+    {% if dashboard and dashboard.layout == constant('App\\Entity\\DashboardLayout::Auto') %}
+        <div class="lines">
+            {% for row in rows %}
+                <div class="line" style="flex-grow: {{ row.weight }}">
+                    {% for rendered in row.tiles %}
+                        <div class="tile tile-{{ rendered.tile.widget }}">
+                            {{ rendered.html|raw }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    {% elseif dashboard %}
         <div class="grid">
             {% for rendered in tiles %}
                 {% set tile = rendered.tile %}

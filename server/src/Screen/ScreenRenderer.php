@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Screen;
 
 use App\Entity\Dashboard;
+use App\Entity\DashboardLayout;
 use App\Entity\Tile\Tile;
 use App\Widget\WidgetRenderer;
 use Sensiolabs\GotenbergBundle\Enumeration\ScreenshotFormat;
@@ -30,6 +31,7 @@ class ScreenRenderer
         private readonly Environment $twig,
         private readonly ClockInterface $clock,
         private readonly WidgetRenderer $widgets,
+        private readonly AutoLayout $autoLayout,
         #[Autowire('%env(int:SCREEN_WIDTH)%')]
         private readonly int $width,
         #[Autowire('%env(int:SCREEN_HEIGHT)%')]
@@ -77,16 +79,18 @@ class ScreenRenderer
     /**
      * Contexte du template Twig.
      *
-     * @return array{generatedAt: \DateTimeImmutable, dashboard: ?Dashboard, tiles: list<RenderedTile>, gotenberg: bool}
+     * @return array{generatedAt: \DateTimeImmutable, dashboard: ?Dashboard, tiles: list<RenderedTile>, rows: list<LayoutRow>, gotenberg: bool}
      */
     private function context(?Dashboard $dashboard, ?\DateTimeImmutable $at, bool $gotenberg): array
     {
         $moment = $at ?? $this->clock->now();
+        $tiles = $this->render($dashboard?->tilesVisibleAt($moment) ?? [], $moment);
 
         return [
             'generatedAt' => $moment,
             'dashboard' => $dashboard,
-            'tiles' => $this->render($dashboard?->tilesVisibleAt($moment) ?? [], $moment),
+            'tiles' => $tiles,
+            'rows' => DashboardLayout::Auto === $dashboard?->getLayout() ? $this->autoLayout->rows($tiles) : [],
             'gotenberg' => $gotenberg,
         ];
     }

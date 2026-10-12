@@ -25,6 +25,13 @@
             {% if form.place is defined %}{{ form_row(form.place) }}{% endif %}
             {% if form.trip is defined %}{{ form_row(form.trip) }}{% endif %}
             {% if form.days is defined %}<div style="width: 14rem">{{ form_row(form.days) }}</div>{% endif %}
+            {% if form.autoWidth is defined %}
+                <div class="d-flex flex-wrap gap-3">
+                    <div style="width: 12rem">{{ form_row(form.autoWidth) }}</div>
+                    <div style="width: 12rem">{{ form_row(form.autoSize) }}</div>
+                </div>
+                <div class="form-text mt-n2 mb-3">Deux tuiles en demi-largeur qui se suivent partagent une ligne ; les lignes se partagent la hauteur de l'écran selon leur hauteur.</div>
+            {% endif %}
 
             <fieldset class="mb-4">
                 <legend class="h6 mb-3">{{ form.schedule.vars.label }}</legend>
