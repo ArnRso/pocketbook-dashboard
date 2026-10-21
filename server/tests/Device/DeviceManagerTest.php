@@ -82,7 +82,7 @@ final class DeviceManagerTest extends KernelTestCase
 
     private function createDevice(): Device
     {
-        $device = (new Device())->setName('Salon');
+        $device = new Device()->setName('Salon');
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $entityManager->persist($device);
         $entityManager->flush();

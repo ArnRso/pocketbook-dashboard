@@ -48,24 +48,24 @@ use Symfony\Component\Serializer\SerializerInterface;
 #[CoversClass(UnsupportedTileException::class)]
 final class WidgetsTest extends KernelTestCase
 {
-    private const AT = '2026-10-12 08:00';
+    private const string AT = '2026-10-12 08:00';
 
     public function testClockShowsTheDisplayedMoment(): void
     {
-        $view = (new ClockWidget())->data(new ClockTile(), new \DateTimeImmutable(self::AT));
+        $view = new ClockWidget()->data(new ClockTile(), new \DateTimeImmutable(self::AT));
 
         self::assertSame(self::AT, $view->moment->format('Y-m-d H:i'));
         self::assertNull($view->until);
         self::assertNull($view->battery);
         self::assertFalse($view->charging);
-        self::assertSame('widget/clock.html.twig', (new ClockWidget())->template());
+        self::assertSame('widget/clock.html.twig', new ClockWidget()->template());
     }
 
     public function testClockShowsHowLongTheScreenIsValidAndTheBattery(): void
     {
-        $device = (new Device())->setRefreshSeconds(600)->reportBattery(87, true);
+        $device = new Device()->setRefreshSeconds(600)->reportBattery(87, true);
 
-        $view = (new ClockWidget())->data(new ClockTile(), new \DateTimeImmutable(self::AT), $device);
+        $view = new ClockWidget()->data(new ClockTile(), new \DateTimeImmutable(self::AT), $device);
 
         self::assertSame('2026-10-12 08:10', $view->until?->format('Y-m-d H:i'));
         self::assertSame([87, true], [$view->battery, $view->charging]);
@@ -73,7 +73,7 @@ final class WidgetsTest extends KernelTestCase
 
     public function testClockShowsOnlyTheTimeWhenTheScreenIsRefreshedEveryMinute(): void
     {
-        $view = (new ClockWidget())->data(new ClockTile(), new \DateTimeImmutable(self::AT), (new Device())->setRefreshSeconds(60));
+        $view = new ClockWidget()->data(new ClockTile(), new \DateTimeImmutable(self::AT), new Device()->setRefreshSeconds(60));
 
         self::assertNull($view->until);
         self::assertNull($view->battery);
@@ -85,9 +85,9 @@ final class WidgetsTest extends KernelTestCase
         $forecasts = $this->forecasts($http);
         $home = self::home();
 
-        $current = (new CurrentWeatherWidget($forecasts))->data((new CurrentWeatherTile())->setPlace($home), new \DateTimeImmutable(self::AT));
-        $rain = (new RainWidget($forecasts))->data((new RainTile())->setPlace($home), new \DateTimeImmutable(self::AT));
-        (new HourlyForecastWidget($forecasts))->data((new HourlyForecastTile())->setPlace($home), new \DateTimeImmutable(self::AT));
+        $current = new CurrentWeatherWidget($forecasts)->data(new CurrentWeatherTile()->setPlace($home), new \DateTimeImmutable(self::AT));
+        $rain = new RainWidget($forecasts)->data(new RainTile()->setPlace($home), new \DateTimeImmutable(self::AT));
+        new HourlyForecastWidget($forecasts)->data(new HourlyForecastTile()->setPlace($home), new \DateTimeImmutable(self::AT));
 
         self::assertSame(1, $http->getRequestsCount());
         self::assertSame('Maison', $current->place);
@@ -99,9 +99,9 @@ final class WidgetsTest extends KernelTestCase
     {
         $forecasts = $this->forecasts($this->openMeteo());
 
-        self::assertSame('widget/current_weather.html.twig', (new CurrentWeatherWidget($forecasts))->template());
-        self::assertSame('widget/rain.html.twig', (new RainWidget($forecasts))->template());
-        self::assertSame('widget/hourly_forecast.html.twig', (new HourlyForecastWidget($forecasts))->template());
+        self::assertSame('widget/current_weather.html.twig', new CurrentWeatherWidget($forecasts)->template());
+        self::assertSame('widget/rain.html.twig', new RainWidget($forecasts)->template());
+        self::assertSame('widget/hourly_forecast.html.twig', new HourlyForecastWidget($forecasts)->template());
     }
 
     public function testWeatherTileWithoutPlaceIsReported(): void
@@ -121,7 +121,7 @@ final class WidgetsTest extends KernelTestCase
         $this->expectException(WidgetNotConfiguredException::class);
         $this->expectExceptionMessageIs('Coordonnées manquantes pour le lieu Chalet');
 
-        $widget->data((new RainTile())->setPlace((new Place())->setLabel('Chalet')), new \DateTimeImmutable(self::AT));
+        $widget->data(new RainTile()->setPlace(new Place()->setLabel('Chalet')), new \DateTimeImmutable(self::AT));
     }
 
     public function testRoutesAreFetchedOncePerCacheLifetimeAndTrip(): void
@@ -132,8 +132,8 @@ final class WidgetsTest extends KernelTestCase
             ->with(new Coordinates(45.7576, 4.832), new Coordinates(45.7719, 4.8902), self::isBool())
             ->willReturn([new Route('A7', 19, 18, 9.6)]);
         $widget = new CommuteWidget($travelTime, new ArrayAdapter());
-        $trip = (new Trip())->setOrigin(self::home())->setDestination(self::work());
-        $tile = (new CommuteTile())->setTrip($trip);
+        $trip = new Trip()->setOrigin(self::home())->setDestination(self::work());
+        $tile = new CommuteTile()->setTrip($trip);
 
         $commute = $widget->data($tile, new \DateTimeImmutable(self::AT));
         $widget->data($tile, new \DateTimeImmutable(self::AT));
@@ -160,12 +160,12 @@ final class WidgetsTest extends KernelTestCase
     public function testTripWithoutCoordinatesIsReported(): void
     {
         $widget = new CommuteWidget(self::createStub(TravelTimeProviderInterface::class), new ArrayAdapter());
-        $trip = (new Trip())->setOrigin(self::home())->setDestination((new Place())->setLabel('Travail'));
+        $trip = new Trip()->setOrigin(self::home())->setDestination(new Place()->setLabel('Travail'));
 
         $this->expectException(WidgetNotConfiguredException::class);
         $this->expectExceptionMessageIs('Coordonnées manquantes pour le trajet Maison → Travail');
 
-        $widget->data((new CommuteTile())->setTrip($trip), new \DateTimeImmutable(self::AT));
+        $widget->data(new CommuteTile()->setTrip($trip), new \DateTimeImmutable(self::AT));
     }
 
     public function testClockRejectsOtherTiles(): void
@@ -173,7 +173,7 @@ final class WidgetsTest extends KernelTestCase
         $this->expectException(UnsupportedTileException::class);
         $this->expectExceptionMessageIs(\sprintf('Tuile %s reçue, %s attendue.', RainTile::class, ClockTile::class));
 
-        (new ClockWidget())->data(new RainTile(), new \DateTimeImmutable(self::AT));
+        new ClockWidget()->data(new RainTile(), new \DateTimeImmutable(self::AT));
     }
 
     public function testWeatherWidgetRejectsOtherTiles(): void
@@ -181,7 +181,7 @@ final class WidgetsTest extends KernelTestCase
         $this->expectException(UnsupportedTileException::class);
         $this->expectExceptionMessageIs(\sprintf('Tuile %s reçue, %s attendue.', ClockTile::class, WeatherTile::class));
 
-        (new RainWidget($this->forecasts($this->openMeteo())))->data(new ClockTile(), new \DateTimeImmutable(self::AT));
+        new RainWidget($this->forecasts($this->openMeteo()))->data(new ClockTile(), new \DateTimeImmutable(self::AT));
     }
 
     public function testCommuteWidgetRejectsOtherTiles(): void
@@ -189,7 +189,7 @@ final class WidgetsTest extends KernelTestCase
         $this->expectException(UnsupportedTileException::class);
         $this->expectExceptionMessageIs(\sprintf('Tuile %s reçue, %s attendue.', ClockTile::class, CommuteTile::class));
 
-        (new CommuteWidget(self::createStub(TravelTimeProviderInterface::class), new ArrayAdapter()))->data(new ClockTile(), new \DateTimeImmutable(self::AT));
+        new CommuteWidget(self::createStub(TravelTimeProviderInterface::class), new ArrayAdapter())->data(new ClockTile(), new \DateTimeImmutable(self::AT));
     }
 
     private function openMeteo(): MockHttpClient
@@ -209,11 +209,11 @@ final class WidgetsTest extends KernelTestCase
 
     private static function home(): Place
     {
-        return (new Place())->setLabel('Maison')->setLatitude(45.7576)->setLongitude(4.832);
+        return new Place()->setLabel('Maison')->setLatitude(45.7576)->setLongitude(4.832);
     }
 
     private static function work(): Place
     {
-        return (new Place())->setLabel('Travail')->setLatitude(45.7719)->setLongitude(4.8902);
+        return new Place()->setLabel('Travail')->setLatitude(45.7719)->setLongitude(4.8902);
     }
 }

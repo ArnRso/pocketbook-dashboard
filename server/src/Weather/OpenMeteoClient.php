@@ -23,7 +23,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class OpenMeteoClient
 {
-    private const HOURS = 12;
+    private const int HOURS = 12;
 
     public function __construct(
         #[Target('open_meteo.client')]

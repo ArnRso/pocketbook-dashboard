@@ -34,7 +34,7 @@ final class ScheduleTest extends KernelTestCase
 
     public function testWithoutTimeRangeTheWholeDayIsCovered(): void
     {
-        $schedule = (new Schedule())->setWeekdays([1]);
+        $schedule = new Schedule()->setWeekdays([1]);
 
         self::assertTrue($schedule->isActiveAt(new \DateTimeImmutable('2026-10-12 00:00')));
         self::assertTrue($schedule->isActiveAt(new \DateTimeImmutable('2026-10-12 23:59')));
@@ -43,7 +43,7 @@ final class ScheduleTest extends KernelTestCase
 
     public function testEveryDayByDefault(): void
     {
-        self::assertSame([1, 2, 3, 4, 5, 6, 7], (new Schedule())->getWeekdays());
+        self::assertSame([1, 2, 3, 4, 5, 6, 7], new Schedule()->getWeekdays());
     }
 
     #[DataProvider('intersections')]
@@ -63,7 +63,7 @@ final class ScheduleTest extends KernelTestCase
         yield 'plage qui suit' => [self::schedule([1, 2, 3, 4, 5], '10:00', '14:00'), false];
         yield 'plage qui précède' => [self::schedule([1, 2, 3, 4, 5], '00:00', '06:00'), false];
         yield 'plage incluse' => [self::schedule([3], '07:00', '08:00'), true];
-        yield 'week-end seulement' => [(new Schedule())->setWeekdays([6, 7]), false];
+        yield 'week-end seulement' => [new Schedule()->setWeekdays([6, 7]), false];
     }
 
     #[DataProvider('invalidSchedules')]
@@ -81,9 +81,9 @@ final class ScheduleTest extends KernelTestCase
      */
     public static function invalidSchedules(): iterable
     {
-        yield 'aucun jour' => [(new Schedule())->setWeekdays([]), 'weekdays', 'Choisis au moins un jour.'];
-        yield 'début sans fin' => [(new Schedule())->setStartTime(new \DateTimeImmutable('06:00')), 'endTime', 'Renseigne l\'heure de début et l\'heure de fin, ou aucune des deux.'];
-        yield 'fin sans début' => [(new Schedule())->setEndTime(new \DateTimeImmutable('06:00')), 'startTime', 'Renseigne l\'heure de début et l\'heure de fin, ou aucune des deux.'];
+        yield 'aucun jour' => [new Schedule()->setWeekdays([]), 'weekdays', 'Choisis au moins un jour.'];
+        yield 'début sans fin' => [new Schedule()->setStartTime(new \DateTimeImmutable('06:00')), 'endTime', 'Renseigne l\'heure de début et l\'heure de fin, ou aucune des deux.'];
+        yield 'fin sans début' => [new Schedule()->setEndTime(new \DateTimeImmutable('06:00')), 'startTime', 'Renseigne l\'heure de début et l\'heure de fin, ou aucune des deux.'];
         yield 'fin avant début' => [self::schedule([1], '10:00', '06:00'), 'endTime', 'L\'heure de fin doit être après l\'heure de début.'];
         yield 'fin égale au début' => [self::schedule([1], '10:00', '10:00'), 'endTime', 'L\'heure de fin doit être après l\'heure de début.'];
     }
@@ -100,7 +100,7 @@ final class ScheduleTest extends KernelTestCase
     {
         self::assertSame('Tous les jours', (string) new Schedule());
         self::assertSame('Lun, Mar, Mer, Jeu, Ven, 06:00–10:00', (string) self::weekdaysMorning());
-        self::assertSame('Sam, Dim', (string) (new Schedule())->setWeekdays([6, 7]));
+        self::assertSame('Sam, Dim', (string) new Schedule()->setWeekdays([6, 7]));
     }
 
     private static function weekdaysMorning(): Schedule
@@ -113,7 +113,7 @@ final class ScheduleTest extends KernelTestCase
      */
     private static function schedule(array $weekdays, string $start, string $end): Schedule
     {
-        return (new Schedule())
+        return new Schedule()
             ->setWeekdays($weekdays)
             ->setStartTime(new \DateTimeImmutable($start))
             ->setEndTime(new \DateTimeImmutable($end));

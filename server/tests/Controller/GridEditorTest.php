@@ -111,7 +111,7 @@ final class GridEditorTest extends FunctionalTestCase
     public function testTileOfAnotherDashboardIsNotFound(): void
     {
         $dashboard = $this->createDashboard();
-        $other = (new Dashboard())->setName('Cuisine');
+        $other = new Dashboard()->setName('Cuisine');
         $this->entityManager()->persist($other);
         $this->entityManager()->flush();
         $this->logIn();
@@ -148,7 +148,7 @@ final class GridEditorTest extends FunctionalTestCase
 
     public function testBridgeTileShowsTheChosenNumberOfDays(): void
     {
-        $dashboard = (new Dashboard())->setName('Pont');
+        $dashboard = new Dashboard()->setName('Pont');
         $this->entityManager()->persist($dashboard);
         $this->entityManager()->flush();
         $this->logIn();

@@ -38,7 +38,7 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 class DashboardCrudController extends AbstractCrudController
 {
     /** La tuile de l'URL n'est trouvée que si elle appartient au dashboard de l'URL : 404 sinon */
-    private const TILE = ['tile' => 'id', 'id' => 'dashboard'];
+    private const array TILE = ['tile' => 'id', 'id' => 'dashboard'];
 
     public function __construct(
         private readonly TileEditor $tiles,

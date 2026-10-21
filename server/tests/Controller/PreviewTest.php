@@ -127,7 +127,7 @@ final class PreviewTest extends FunctionalTestCase
     public function testDashboardCanBeChosen(): void
     {
         $this->createDashboard();
-        $other = (new Dashboard())->setName('Cuisine')->addTile((new ClockTile())->place(1, 1, 6, 2));
+        $other = new Dashboard()->setName('Cuisine')->addTile(new ClockTile()->place(1, 1, 6, 2));
         $this->entityManager()->persist($other);
         $this->entityManager()->flush();
         $this->logIn();
@@ -242,15 +242,15 @@ final class PreviewTest extends FunctionalTestCase
 
     public function testRemindersTileOnlyAppearsDuringAReminder(): void
     {
-        $reminder = (new Reminder())->setText('Sortir la poubelle verte')->addWindow((new ReminderWindow())
+        $reminder = new Reminder()->setText('Sortir la poubelle verte')->addWindow(new ReminderWindow()
             ->setStartDay(Weekday::Sunday)
             ->setStartTime(new \DateTimeImmutable('16:00'))
             ->setEndDay(Weekday::Monday)
             ->setEndTime(new \DateTimeImmutable('09:00')));
-        $dashboard = (new Dashboard())
+        $dashboard = new Dashboard()
             ->setName('Entrée')
-            ->addTile((new ClockTile())->place(1, 1, 12, 2))
-            ->addTile((new ReminderTile())->place(1, 3, 12, 2));
+            ->addTile(new ClockTile()->place(1, 1, 12, 2))
+            ->addTile(new ReminderTile()->place(1, 3, 12, 2));
         $this->entityManager()->persist($reminder);
         $this->entityManager()->persist($dashboard);
         $this->entityManager()->flush();

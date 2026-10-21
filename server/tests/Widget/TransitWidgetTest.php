@@ -28,11 +28,11 @@ use Symfony\Component\Serializer\SerializerInterface;
 #[CoversClass(TransitTile::class)]
 final class TransitWidgetTest extends KernelTestCase
 {
-    private const NOW = '2026-10-12 13:20:00';
+    private const string NOW = '2026-10-12 13:20:00';
 
     public function testNextPassagesOfEachStopInItsLineAndDirection(): void
     {
-        $tile = (new TransitTile())
+        $tile = new TransitTile()
             ->addStop(self::stop('bordeaux:Line:163:LOC#0', 'E', 'Gare de Blanquefort'))
             ->addStop(self::stop('bordeaux:Line:59:LOC#1', 'A', 'Cenon Gare'));
 
@@ -50,7 +50,7 @@ final class TransitWidgetTest extends KernelTestCase
 
     public function testNumberOfPassagesIsConfigurable(): void
     {
-        $tile = (new TransitTile())->setDepartures(5)->addStop(self::stop('bordeaux:Line:163:LOC#0', 'E', 'Gare de Blanquefort'));
+        $tile = new TransitTile()->setDepartures(5)->addStop(self::stop('bordeaux:Line:163:LOC#0', 'E', 'Gare de Blanquefort'));
 
         self::assertSame([['13:24', '13:32', '13:42', '13:52']], self::times($this->widget()->data($tile, new \DateTimeImmutable(self::NOW))));
     }
@@ -59,7 +59,7 @@ final class TransitWidgetTest extends KernelTestCase
     {
         $http = TbmFixtures::http();
         $widget = $this->widget($http);
-        $tile = (new TransitTile())
+        $tile = new TransitTile()
             ->addStop(self::stop('bordeaux:Line:163:LOC#0', 'E', 'Gare de Blanquefort'))
             ->addStop(self::stop('bordeaux:Line:163:LOC#1', 'E', 'Floirac Dravemont'));
 
@@ -82,7 +82,7 @@ final class TransitWidgetTest extends KernelTestCase
         $this->expectException(WidgetNotConfiguredException::class);
         $this->expectExceptionMessageIs('Nombre de passages non renseigné');
 
-        $this->widget()->data((new TransitTile())->setDepartures(null), new \DateTimeImmutable(self::NOW));
+        $this->widget()->data(new TransitTile()->setDepartures(null), new \DateTimeImmutable(self::NOW));
     }
 
     public function testOtherTilesAreRejected(): void
@@ -94,12 +94,12 @@ final class TransitWidgetTest extends KernelTestCase
 
     public function testTileDescribesItsStops(): void
     {
-        $tile = (new TransitTile())
+        $tile = new TransitTile()
             ->addStop(self::stop('bordeaux:Line:163:LOC#0', 'E', 'Gare de Blanquefort'))
             ->addStop(self::stop('bordeaux:Line:59:LOC#1', 'A', 'Cenon Gare'));
 
         self::assertSame('Prochains passages TBM · Palmer', $tile->describe());
-        self::assertSame('Prochains passages TBM', (new TransitTile())->describe());
+        self::assertSame('Prochains passages TBM', new TransitTile()->describe());
         self::assertSame(3, $tile->maxHeight());
 
         $stop = $tile->getStops()->first();
@@ -122,7 +122,7 @@ final class TransitWidgetTest extends KernelTestCase
 
     private static function stop(string $route, string $code, string $destination): TransitStop
     {
-        return (new TransitStop())
+        return new TransitStop()
             ->setStopArea('bordeaux:StopPoint:BP:TPALMER:LOC')
             ->setRoute($route)
             ->describe('Palmer', $code, $destination);

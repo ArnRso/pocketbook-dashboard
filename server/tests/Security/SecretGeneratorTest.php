@@ -15,7 +15,7 @@ final class SecretGeneratorTest extends TestCase
 {
     public function testPasswordIsLongAndUnambiguous(): void
     {
-        $password = (new SecretGenerator())->password();
+        $password = new SecretGenerator()->password();
 
         self::assertMatchesRegularExpression('/^[a-km-zA-HJ-NP-Z2-9]{20}$/', $password);
     }
@@ -24,7 +24,7 @@ final class SecretGeneratorTest extends TestCase
     {
         $generator = new SecretGenerator(new Randomizer(new Mt19937(42)));
 
-        $characters = count_chars(implode('', array_map(static fn (): string => $generator->password(), range(1, 200))), 3);
+        $characters = count_chars(implode('', array_map($generator->password(...), range(1, 200))), 3);
 
         self::assertSame(count_chars(SecretGenerator::PASSWORD_ALPHABET, 3), $characters);
     }

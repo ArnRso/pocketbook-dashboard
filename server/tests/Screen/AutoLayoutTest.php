@@ -25,7 +25,7 @@ final class AutoLayoutTest extends TestCase
 {
     public function testAdaptiveTilesShareTheScreenUpToTheirMaximum(): void
     {
-        $rows = (new AutoLayout())->rows([self::hourly('a'), self::hourly('b'), self::hourly('c'), self::hourly('d')]);
+        $rows = new AutoLayout()->rows([self::hourly('a'), self::hourly('b'), self::hourly('c'), self::hourly('d')]);
 
         self::assertSame([['a'], ['b'], ['c'], ['d']], self::names($rows));
         self::assertSame([0.25, 0.25, 0.25, 0.25], self::shares($rows));
@@ -33,7 +33,7 @@ final class AutoLayoutTest extends TestCase
 
     public function testSpaceATileDoesNotNeedGoesToTheOthers(): void
     {
-        $rows = (new AutoLayout())->rows([self::clock('a'), self::hourly('b'), self::hourly('c'), self::hourly('d'), self::hourly('e')]);
+        $rows = new AutoLayout()->rows([self::clock('a'), self::hourly('b'), self::hourly('c'), self::hourly('d'), self::hourly('e')]);
 
         // La date se contente de 1/8, les prévisions se partagent les 7/8 restants
         self::assertSame([0.125, 0.21875, 0.21875, 0.21875, 0.21875], self::shares($rows));
@@ -41,14 +41,14 @@ final class AutoLayoutTest extends TestCase
 
     public function testBottomOfTheScreenStaysFreeWhenEveryTileHasWhatItNeeds(): void
     {
-        $rows = (new AutoLayout())->rows([self::clock('a'), self::hourly('b')]);
+        $rows = new AutoLayout()->rows([self::clock('a'), self::hourly('b')]);
 
         self::assertSame([0.125, 0.25], self::shares($rows));
     }
 
     public function testImposedHeightsAreKeptAndAdaptiveTilesFillTheRest(): void
     {
-        $rows = (new AutoLayout())->rows([
+        $rows = new AutoLayout()->rows([
             self::hourly('a', size: TileSize::Large),
             self::hourly('b'),
             self::hourly('c'),
@@ -60,14 +60,14 @@ final class AutoLayoutTest extends TestCase
 
     public function testImposedHeightIsKeptBeyondTheWidgetMaximum(): void
     {
-        $rows = (new AutoLayout())->rows([self::clock('a', size: TileSize::Large), self::clock('b', size: TileSize::Small)]);
+        $rows = new AutoLayout()->rows([self::clock('a', size: TileSize::Large), self::clock('b', size: TileSize::Small)]);
 
         self::assertSame([0.375, 0.125], self::shares($rows));
     }
 
     public function testEverythingShrinksWhenImposedHeightsExceedTheScreen(): void
     {
-        $rows = (new AutoLayout())->rows([
+        $rows = new AutoLayout()->rows([
             self::hourly('a', size: TileSize::Large),
             self::hourly('b', size: TileSize::Large),
             self::hourly('c', size: TileSize::Medium),
@@ -81,7 +81,7 @@ final class AutoLayoutTest extends TestCase
 
     public function testHalfWidthTilesShareARow(): void
     {
-        $rows = (new AutoLayout())->rows([
+        $rows = new AutoLayout()->rows([
             self::hourly('a', TileWidth::Half),
             self::hourly('b', TileWidth::Half),
             self::hourly('c'),
@@ -92,7 +92,7 @@ final class AutoLayoutTest extends TestCase
 
     public function testAdaptiveTileFillsTheGapNextToAHalfWidthTile(): void
     {
-        $rows = (new AutoLayout())->rows([
+        $rows = new AutoLayout()->rows([
             self::clock('a', TileWidth::Half),
             self::hourly('b'),
             self::hourly('c'),
@@ -105,7 +105,7 @@ final class AutoLayoutTest extends TestCase
 
     public function testLoneHalfWidthTileTakesTheWholeRow(): void
     {
-        $rows = (new AutoLayout())->rows([
+        $rows = new AutoLayout()->rows([
             self::hourly('a', TileWidth::Half),
             self::hourly('b', TileWidth::Full),
             self::hourly('c'),
@@ -117,7 +117,7 @@ final class AutoLayoutTest extends TestCase
 
     public function testRowIsAsHighAsItsHighestImposedTile(): void
     {
-        $rows = (new AutoLayout())->rows([
+        $rows = new AutoLayout()->rows([
             self::hourly('a', TileWidth::Half, TileSize::Small),
             self::hourly('b', TileWidth::Half, TileSize::Medium),
             self::hourly('c', TileWidth::Half, TileSize::Small),
@@ -132,7 +132,7 @@ final class AutoLayoutTest extends TestCase
 
     public function testNothingToLayOut(): void
     {
-        self::assertSame([], (new AutoLayout())->rows([]));
+        self::assertSame([], new AutoLayout()->rows([]));
     }
 
     private static function hourly(string $name, ?TileWidth $width = null, ?TileSize $size = null): RenderedTile

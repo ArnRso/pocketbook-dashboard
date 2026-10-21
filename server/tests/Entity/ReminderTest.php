@@ -81,7 +81,7 @@ final class ReminderTest extends KernelTestCase
 
     public function testIncompleteWindowIsRejectedAndNeverActive(): void
     {
-        $window = (new ReminderWindow())->setStartDay(Weekday::Monday)->setStartTime(new \DateTimeImmutable('08:00'));
+        $window = new ReminderWindow()->setStartDay(Weekday::Monday)->setStartTime(new \DateTimeImmutable('08:00'));
 
         $violations = self::getContainer()->get(ValidatorInterface::class)->validate($window);
 
@@ -100,7 +100,7 @@ final class ReminderTest extends KernelTestCase
 
     public function testInvalidWindowMakesTheReminderInvalid(): void
     {
-        $reminder = (new Reminder())->setText('Poubelle')->addWindow(self::window(Weekday::Friday, '10:00', Weekday::Friday, '10:00'));
+        $reminder = new Reminder()->setText('Poubelle')->addWindow(self::window(Weekday::Friday, '10:00', Weekday::Friday, '10:00'));
 
         $violations = self::getContainer()->get(ValidatorInterface::class)->validate($reminder);
 
@@ -112,7 +112,7 @@ final class ReminderTest extends KernelTestCase
     {
         $tuesday = self::window(Weekday::Tuesday, '18:00', Weekday::Tuesday, '20:00');
         $sunday = self::window(Weekday::Sunday, '16:00', Weekday::Monday, '09:00');
-        $reminder = (new Reminder())->setText('Sortir la poubelle verte')->addWindow($tuesday)->addWindow($sunday);
+        $reminder = new Reminder()->setText('Sortir la poubelle verte')->addWindow($tuesday)->addWindow($sunday);
 
         self::assertSame($sunday, $reminder->windowAt(self::at('2026-10-19 07:00')));
         self::assertSame($tuesday, $reminder->windowAt(self::at('2026-10-13 19:00')));
@@ -124,7 +124,7 @@ final class ReminderTest extends KernelTestCase
 
     public function testDisabledReminderIsNeverActive(): void
     {
-        $reminder = (new Reminder())->setText('Poubelle')->addWindow(self::window(Weekday::Sunday, '16:00', Weekday::Monday, '09:00'))->setEnabled(false);
+        $reminder = new Reminder()->setText('Poubelle')->addWindow(self::window(Weekday::Sunday, '16:00', Weekday::Monday, '09:00'))->setEnabled(false);
 
         self::assertNull($reminder->windowAt(self::at('2026-10-19 07:00')));
     }
@@ -132,7 +132,7 @@ final class ReminderTest extends KernelTestCase
     public function testWindowsCanBeRemovedOnce(): void
     {
         $window = self::window(Weekday::Sunday, '16:00', Weekday::Monday, '09:00');
-        $reminder = (new Reminder())->addWindow($window)->addWindow($window);
+        $reminder = new Reminder()->addWindow($window)->addWindow($window);
 
         self::assertCount(1, $reminder->getWindows());
 
@@ -143,7 +143,7 @@ final class ReminderTest extends KernelTestCase
 
     private static function window(Weekday $startDay, string $startTime, Weekday $endDay, string $endTime): ReminderWindow
     {
-        return (new ReminderWindow())
+        return new ReminderWindow()
             ->setStartDay($startDay)
             ->setStartTime(new \DateTimeImmutable($startTime))
             ->setEndDay($endDay)

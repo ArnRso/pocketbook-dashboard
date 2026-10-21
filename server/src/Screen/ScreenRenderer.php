@@ -21,11 +21,11 @@ use Twig\Environment;
  */
 class ScreenRenderer
 {
-    private const TEMPLATE = 'screen/screen.html.twig';
+    private const string TEMPLATE = 'screen/screen.html.twig';
 
     // L'écran E Ink affiche 16 niveaux de gris : on réduit l'image en amont pour que
     // la liseuse n'ait pas à tramer elle-même les aplats.
-    private const GRAY_LEVELS = 16;
+    private const int GRAY_LEVELS = 16;
 
     public function __construct(
         private readonly GotenbergScreenshotInterface $gotenberg,

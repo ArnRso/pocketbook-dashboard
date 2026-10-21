@@ -17,8 +17,8 @@ final class AutocompleteResponseDenormalizer implements DenormalizerInterface, D
 {
     use DenormalizerAwareTrait;
 
-    private const SUGGESTIONS = 1;
-    private const PLACE = 3;
+    private const int SUGGESTIONS = 1;
+    private const int PLACE = 3;
 
     /**
      * @param array<string, mixed> $context

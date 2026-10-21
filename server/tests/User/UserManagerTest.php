@@ -67,7 +67,7 @@ final class UserManagerTest extends KernelTestCase
 
     public function testSessionNeverContainsThePasswordHash(): void
     {
-        $user = (new User('alice'))->setPassword('$2y$13$hash');
+        $user = new User('alice')->setPassword('$2y$13$hash');
 
         $serialized = serialize($user);
 

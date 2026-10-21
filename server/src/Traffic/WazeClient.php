@@ -26,9 +26,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class WazeClient implements TravelTimeProviderInterface, GeocoderInterface
 {
-    private const ROUTING_URL = 'https://routing-livemap-row.waze.com/RoutingManager/routingRequest';
-    private const AUTOCOMPLETE_URL = 'https://gapi.waze.com/autocomplete/q';
-    private const ALTERNATIVES = 3;
+    private const string ROUTING_URL = 'https://routing-livemap-row.waze.com/RoutingManager/routingRequest';
+    private const string AUTOCOMPLETE_URL = 'https://gapi.waze.com/autocomplete/q';
+    private const int ALTERNATIVES = 3;
 
     public function __construct(
         #[Target('waze.client')]

@@ -17,7 +17,7 @@ final class PreviewMomentTest extends TestCase
 {
     public function testNothingChosenMeansNow(): void
     {
-        self::assertNull((new PreviewMoment(new MockClock('2026-10-14 10:00')))->resolve(new PreviewQuery()));
+        self::assertNull(new PreviewMoment(new MockClock('2026-10-14 10:00'))->resolve(new PreviewQuery()));
     }
 
     #[DataProvider('moments')]
@@ -27,7 +27,7 @@ final class PreviewMomentTest extends TestCase
         $query->day = $day;
         $query->time = $time;
 
-        $moment = (new PreviewMoment(new MockClock($now, 'Europe/Paris')))->resolve($query);
+        $moment = new PreviewMoment(new MockClock($now, 'Europe/Paris'))->resolve($query);
 
         self::assertNotNull($moment);
         self::assertSame($expected, $moment->format('D Y-m-d H:i'));

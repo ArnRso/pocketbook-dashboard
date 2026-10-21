@@ -49,30 +49,30 @@ final class TileTest extends KernelTestCase
      */
     public static function tiles(): iterable
     {
-        $home = (new Place())->setLabel('Maison');
-        $trip = (new Trip())->setOrigin($home)->setDestination((new Place())->setLabel('Travail'));
+        $home = new Place()->setLabel('Maison');
+        $trip = new Trip()->setOrigin($home)->setDestination(new Place()->setLabel('Travail'));
 
         yield 'date et heure' => [new ClockTile(), 'clock', 'Date et heure', 12, 2];
-        yield 'météo actuelle' => [(new CurrentWeatherTile())->setPlace($home), 'current_weather', 'Météo actuelle · Maison', 12, 3];
-        yield 'pluie' => [(new RainTile())->setPlace($home), 'rain', 'Pluie · Maison', 12, 2];
-        yield 'prévisions' => [(new HourlyForecastTile())->setPlace($home), 'hourly_forecast', 'Prévisions heure par heure · Maison', 12, 4];
-        yield 'trajet' => [(new CommuteTile())->setTrip($trip), 'commute', 'Trajet · Maison → Travail', 12, 5];
+        yield 'météo actuelle' => [new CurrentWeatherTile()->setPlace($home), 'current_weather', 'Météo actuelle · Maison', 12, 3];
+        yield 'pluie' => [new RainTile()->setPlace($home), 'rain', 'Pluie · Maison', 12, 2];
+        yield 'prévisions' => [new HourlyForecastTile()->setPlace($home), 'hourly_forecast', 'Prévisions heure par heure · Maison', 12, 4];
+        yield 'trajet' => [new CommuteTile()->setTrip($trip), 'commute', 'Trajet · Maison → Travail', 12, 5];
         yield 'pont' => [new ChabanTile(), 'chaban', 'Pont Chaban-Delmas · 7 jours', 12, 3];
     }
 
     public function testBridgeDaysAreBounded(): void
     {
-        self::assertSame('days', $this->validate((new ChabanTile())->setDays(0))->get(0)->getPropertyPath());
-        self::assertSame('days', $this->validate((new ChabanTile())->setDays(31))->get(0)->getPropertyPath());
-        self::assertSame('days', $this->validate((new ChabanTile())->setDays(null))->get(0)->getPropertyPath());
-        self::assertCount(0, $this->validate((new ChabanTile())->setDays(30)));
+        self::assertSame('days', $this->validate(new ChabanTile()->setDays(0))->get(0)->getPropertyPath());
+        self::assertSame('days', $this->validate(new ChabanTile()->setDays(31))->get(0)->getPropertyPath());
+        self::assertSame('days', $this->validate(new ChabanTile()->setDays(null))->get(0)->getPropertyPath());
+        self::assertCount(0, $this->validate(new ChabanTile()->setDays(30)));
     }
 
     #[DataProvider('positions')]
     public function testConflictsWhenOverlappingAtTheSameTime(int $column, int $row, int $width, int $height, bool $expected): void
     {
-        $reference = (new ClockTile())->place(3, 3, 4, 2);
-        $other = (new ClockTile())->place($column, $row, $width, $height);
+        $reference = new ClockTile()->place(3, 3, 4, 2);
+        $other = new ClockTile()->place($column, $row, $width, $height);
 
         self::assertSame($expected, $reference->conflictsWith($other));
         self::assertSame($expected, $other->conflictsWith($reference), 'La relation est symétrique.');
@@ -96,9 +96,9 @@ final class TileTest extends KernelTestCase
 
     public function testSamePlaceAtDifferentTimesIsAllowed(): void
     {
-        $morning = (new ClockTile())->place(1, 1, 12, 2);
+        $morning = new ClockTile()->place(1, 1, 12, 2);
         $morning->getSchedule()->setStartTime(new \DateTimeImmutable('06:00'))->setEndTime(new \DateTimeImmutable('14:00'));
-        $evening = (new ClockTile())->place(1, 1, 12, 2);
+        $evening = new ClockTile()->place(1, 1, 12, 2);
         $evening->getSchedule()->setStartTime(new \DateTimeImmutable('14:00'))->setEndTime(new \DateTimeImmutable('20:00'));
 
         self::assertFalse($morning->conflictsWith($evening));
@@ -115,9 +115,9 @@ final class TileTest extends KernelTestCase
 
     public function testValidLayout(): void
     {
-        $dashboard = (new Dashboard())
-            ->addTile((new ClockTile())->place(1, 1, 12, 2))
-            ->addTile((new ClockTile())->place(1, 15, 12, 2));
+        $dashboard = new Dashboard()
+            ->addTile(new ClockTile()->place(1, 1, 12, 2))
+            ->addTile(new ClockTile()->place(1, 15, 12, 2));
 
         foreach ($dashboard->getTiles() as $tile) {
             self::assertCount(0, $this->validate($tile));
@@ -126,7 +126,7 @@ final class TileTest extends KernelTestCase
 
     public function testTileMustFitInTheGrid(): void
     {
-        $violations = $this->validate((new ClockTile())->place(10, 15, 4, 3));
+        $violations = $this->validate(new ClockTile()->place(10, 15, 4, 3));
 
         self::assertCount(2, $violations);
         self::assertSame('width', $violations->get(0)->getPropertyPath());
@@ -138,7 +138,7 @@ final class TileTest extends KernelTestCase
     #[DataProvider('outOfRange')]
     public function testPositionAndSizeAreBounded(int $column, int $row, int $width, int $height, string $path): void
     {
-        $violations = $this->validate((new ClockTile())->place($column, $row, $width, $height));
+        $violations = $this->validate(new ClockTile()->place($column, $row, $width, $height));
 
         self::assertContains($path, array_map(static fn (int $index): string => $violations->get($index)->getPropertyPath(), range(0, \count($violations) - 1)));
     }
@@ -158,9 +158,9 @@ final class TileTest extends KernelTestCase
 
     public function testOverlappingTilesOfTheSameDashboardAreRejected(): void
     {
-        $clock = (new ClockTile())->place(1, 1, 12, 2);
-        $weather = (new CurrentWeatherTile())->setPlace((new Place())->setLabel('Maison'))->place(1, 2, 12, 3);
-        (new Dashboard())->setLayout(DashboardLayout::Grid)->addTile($clock)->addTile($weather);
+        $clock = new ClockTile()->place(1, 1, 12, 2);
+        $weather = new CurrentWeatherTile()->setPlace(new Place()->setLabel('Maison'))->place(1, 2, 12, 3);
+        new Dashboard()->setLayout(DashboardLayout::Grid)->addTile($clock)->addTile($weather);
 
         $violations = $this->validate($clock);
 
@@ -170,8 +170,8 @@ final class TileTest extends KernelTestCase
 
     public function testOverlappingDoesNotMatterInAutomaticLayout(): void
     {
-        $clock = (new ClockTile())->place(1, 1, 12, 2);
-        (new Dashboard())->addTile($clock)->addTile((new ClockTile())->place(1, 1, 12, 2));
+        $clock = new ClockTile()->place(1, 1, 12, 2);
+        new Dashboard()->addTile($clock)->addTile(new ClockTile()->place(1, 1, 12, 2));
 
         self::assertCount(0, $this->validate($clock));
     }
@@ -186,9 +186,9 @@ final class TileTest extends KernelTestCase
 
     public function testAutomaticLayoutSizeIsAdaptiveUnlessImposed(): void
     {
-        self::assertSame([null, null], [(new ClockTile())->getAutoWidth(), (new ClockTile())->getAutoSize()]);
+        self::assertSame([null, null], [new ClockTile()->getAutoWidth(), new ClockTile()->getAutoSize()]);
 
-        $tile = (new ClockTile())->setAutoWidth(TileWidth::Half)->setAutoSize(TileSize::Large);
+        $tile = new ClockTile()->setAutoWidth(TileWidth::Half)->setAutoSize(TileSize::Large);
 
         self::assertSame([TileWidth::Half, TileSize::Large], [$tile->getAutoWidth(), $tile->getAutoSize()]);
         self::assertSame(['Pleine largeur', 'Demi-largeur'], [TileWidth::Full->label(), TileWidth::Half->label()]);

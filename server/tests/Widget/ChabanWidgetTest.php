@@ -28,13 +28,13 @@ final class ChabanWidgetTest extends KernelTestCase
     public function testClosuresOfTheComingCalendarDays(): void
     {
         // Du lundi 12 au dimanche 18 : la fermeture du lundi 19 n'en fait pas partie
-        $view = $this->widget()->data((new ChabanTile())->setDays(7), self::at('2026-10-12 08:00'));
+        $view = $this->widget()->data(new ChabanTile()->setDays(7), self::at('2026-10-12 08:00'));
 
         self::assertSame(7, $view->days);
         self::assertSame(['2026-10-17 10:34'], array_map(self::start(...), $view->closures));
         self::assertNull($view->ongoing);
 
-        $view = $this->widget()->data((new ChabanTile())->setDays(8), self::at('2026-10-12 08:00'));
+        $view = $this->widget()->data(new ChabanTile()->setDays(8), self::at('2026-10-12 08:00'));
 
         self::assertSame(['2026-10-17 10:34', '2026-10-19 11:34'], array_map(self::start(...), $view->closures));
     }
@@ -49,7 +49,7 @@ final class ChabanWidgetTest extends KernelTestCase
 
     public function testNumberOfDaysIsConfigurable(): void
     {
-        $view = $this->widget()->data((new ChabanTile())->setDays(14), self::at('2026-10-12 08:00'));
+        $view = $this->widget()->data(new ChabanTile()->setDays(14), self::at('2026-10-12 08:00'));
 
         self::assertSame(['2026-10-17 10:34', '2026-10-19 11:34', '2026-10-22 16:34', '2026-10-23 16:49'], array_map(self::start(...), $view->closures));
     }
@@ -67,8 +67,8 @@ final class ChabanWidgetTest extends KernelTestCase
         $http = $this->http();
         $widget = $this->widget($http);
 
-        $widget->data((new ChabanTile())->setDays(3), self::at('2026-10-12 08:00'));
-        $widget->data((new ChabanTile())->setDays(30), self::at('2026-10-12 18:00'));
+        $widget->data(new ChabanTile()->setDays(3), self::at('2026-10-12 08:00'));
+        $widget->data(new ChabanTile()->setDays(30), self::at('2026-10-12 18:00'));
         $widget->data(new ChabanTile(), self::at('2026-10-13 08:00'));
 
         self::assertSame(2, $http->getRequestsCount());
@@ -80,7 +80,7 @@ final class ChabanWidgetTest extends KernelTestCase
         $this->expectException(WidgetNotConfiguredException::class);
         $this->expectExceptionMessageIs('Nombre de jours non renseigné');
 
-        $this->widget()->data((new ChabanTile())->setDays(null), self::at('2026-10-12 08:00'));
+        $this->widget()->data(new ChabanTile()->setDays(null), self::at('2026-10-12 08:00'));
     }
 
     public function testOtherTilesAreRejected(): void

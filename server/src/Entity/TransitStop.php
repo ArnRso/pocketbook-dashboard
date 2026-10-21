@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\Entity(repositoryClass: TransitStopRepository::class)]
 #[ServedTransitStop]
-class TransitStop
+class TransitStop implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

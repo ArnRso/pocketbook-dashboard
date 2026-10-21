@@ -37,7 +37,7 @@ final class RepositoryTest extends KernelTestCase
 
     private function dashboard(string $name): Dashboard
     {
-        $dashboard = (new Dashboard())->setName($name);
+        $dashboard = new Dashboard()->setName($name);
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $entityManager->persist($dashboard);
         $entityManager->flush();

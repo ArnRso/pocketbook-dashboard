@@ -20,9 +20,9 @@ final class PlaceGeocoderTest extends TestCase
     {
         $geocoder = $this->createMock(GeocoderInterface::class);
         $geocoder->expects(self::once())->method('geocode')->with('Place Bellecour, Lyon')->willReturn(new Coordinates(45.7576, 4.832));
-        $place = (new Place())->setAddress('Place Bellecour, Lyon');
+        $place = new Place()->setAddress('Place Bellecour, Lyon');
 
-        (new PlaceGeocoder($geocoder))->completeCoordinates($place);
+        new PlaceGeocoder($geocoder)->completeCoordinates($place);
 
         self::assertSame(45.7576, $place->getLatitude());
         self::assertSame(4.832, $place->getLongitude());
@@ -32,9 +32,9 @@ final class PlaceGeocoderTest extends TestCase
     {
         $geocoder = $this->createMock(GeocoderInterface::class);
         $geocoder->expects(self::never())->method('geocode');
-        $place = (new Place())->setAddress('Place Bellecour, Lyon')->setLatitude(1.0)->setLongitude(2.0);
+        $place = new Place()->setAddress('Place Bellecour, Lyon')->setLatitude(1.0)->setLongitude(2.0);
 
-        (new PlaceGeocoder($geocoder))->completeCoordinates($place);
+        new PlaceGeocoder($geocoder)->completeCoordinates($place);
 
         self::assertEquals(new Coordinates(1.0, 2.0), $place->getCoordinates());
     }
@@ -43,9 +43,9 @@ final class PlaceGeocoderTest extends TestCase
     {
         $geocoder = self::createStub(GeocoderInterface::class);
         $geocoder->method('geocode')->willReturn(new Coordinates(45.7576, 4.832));
-        $place = (new Place())->setAddress('Place Bellecour, Lyon')->setLatitude(1.0);
+        $place = new Place()->setAddress('Place Bellecour, Lyon')->setLatitude(1.0);
 
-        (new PlaceGeocoder($geocoder))->completeCoordinates($place);
+        new PlaceGeocoder($geocoder)->completeCoordinates($place);
 
         self::assertEquals(new Coordinates(45.7576, 4.832), $place->getCoordinates());
     }
@@ -57,6 +57,6 @@ final class PlaceGeocoderTest extends TestCase
 
         $this->expectException(GeocodingException::class);
 
-        (new PlaceGeocoder($geocoder))->completeCoordinates((new Place())->setAddress('Nulle part'));
+        new PlaceGeocoder($geocoder)->completeCoordinates(new Place()->setAddress('Nulle part'));
     }
 }

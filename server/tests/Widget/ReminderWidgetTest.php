@@ -73,7 +73,7 @@ final class ReminderWidgetTest extends KernelTestCase
 
     private static function reminder(string $text, Weekday $startDay, string $startTime, Weekday $endDay, string $endTime): Reminder
     {
-        return (new Reminder())->setText($text)->addWindow((new ReminderWindow())
+        return new Reminder()->setText($text)->addWindow(new ReminderWindow()
             ->setStartDay($startDay)
             ->setStartTime(new \DateTimeImmutable($startTime))
             ->setEndDay($endDay)

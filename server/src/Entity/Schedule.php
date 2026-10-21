@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
  * Jours et plage horaire pendant lesquels une tuile est affichée. Sans plage horaire : toute la journée.
  */
 #[ORM\Embeddable]
-class Schedule
+class Schedule implements \Stringable
 {
     /** @var list<int> Jours ISO-8601 : 1 = lundi … 7 = dimanche */
     #[ORM\Column(type: Types::JSON)]

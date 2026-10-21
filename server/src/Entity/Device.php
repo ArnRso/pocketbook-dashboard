@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\Entity(repositoryClass: DeviceRepository::class)]
 #[UniqueEntity('name', message: 'Une liseuse porte déjà ce nom.')]
-class Device implements UserInterface
+class Device implements UserInterface, \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

@@ -84,6 +84,6 @@ final class QuarterHourTypeTest extends TestCase
     {
         $this->expectException(TransformationFailedException::class);
 
-        (new QuarterHourTransformer())->reverseTransform('midi');
+        new QuarterHourTransformer()->reverseTransform('midi');
     }
 }

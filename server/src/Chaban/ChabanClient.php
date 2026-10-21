@@ -20,8 +20,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class ChabanClient
 {
-    private const RECORDS_PATH = '/api/explore/v2.1/catalog/datasets/previsions_pont_chaban/records';
-    private const MAX_RECORDS = 100;
+    private const string RECORDS_PATH = '/api/explore/v2.1/catalog/datasets/previsions_pont_chaban/records';
+    private const int MAX_RECORDS = 100;
 
     public function __construct(
         #[Target('bordeaux_metropole.client')]

@@ -26,10 +26,10 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class TbmClient
 {
-    private const BASE_PATH = '/utw/ws/siri/2.0/bordeaux/';
+    private const string BASE_PATH = '/utw/ws/siri/2.0/bordeaux/';
 
     /** Clé publique des données ouvertes, donnée par la documentation */
-    private const ACCOUNT_KEY = 'opendata-bordeaux-metropole-flux-gtfs-rt';
+    private const string ACCOUNT_KEY = 'opendata-bordeaux-metropole-flux-gtfs-rt';
 
     public function __construct(
         #[Target('tbm.client')]

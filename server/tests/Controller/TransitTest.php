@@ -102,8 +102,8 @@ final class TransitTest extends FunctionalTestCase
 
     public function testTileShowsTheNextPassagesOfItsStops(): void
     {
-        $dashboard = (new Dashboard())->setName('Entrée');
-        $tram = (new TransitStop())->setStopArea('bordeaux:StopPoint:BP:TPALMER:LOC')->setRoute('bordeaux:Line:163:LOC#0')->describe('Palmer', 'E', 'Gare de Blanquefort');
+        $dashboard = new Dashboard()->setName('Entrée');
+        $tram = new TransitStop()->setStopArea('bordeaux:StopPoint:BP:TPALMER:LOC')->setRoute('bordeaux:Line:163:LOC#0')->describe('Palmer', 'E', 'Gare de Blanquefort');
         $this->entityManager()->persist($dashboard);
         $this->entityManager()->persist($tram);
         $this->entityManager()->flush();
@@ -126,7 +126,7 @@ final class TransitTest extends FunctionalTestCase
 
     public function testStopIsRequiredByTheTile(): void
     {
-        $dashboard = (new Dashboard())->setName('Entrée');
+        $dashboard = new Dashboard()->setName('Entrée');
         $this->entityManager()->persist($dashboard);
         $this->entityManager()->flush();
         $this->logIn();

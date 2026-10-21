@@ -9,6 +9,6 @@ namespace App\Screen;
  */
 final class Grid
 {
-    public const COLUMNS = 12;
-    public const ROWS = 16;
+    public const int COLUMNS = 12;
+    public const int ROWS = 16;
 }

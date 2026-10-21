@@ -9,7 +9,7 @@ namespace App\Weather;
  */
 final readonly class WeatherCondition
 {
-    private const CODES = [
+    private const array CODES = [
         0 => ['Ciel dégagé', 'clear'],
         1 => ['Peu nuageux', 'partly'],
         2 => ['Partiellement nuageux', 'partly'],

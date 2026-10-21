@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
  * Trajet dont une tuile affiche le temps de parcours ; ses horaires d'affichage sont ceux de la tuile.
  */
 #[ORM\Entity(repositoryClass: TripRepository::class)]
-class Trip
+class Trip implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

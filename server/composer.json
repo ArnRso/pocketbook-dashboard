@@ -81,6 +81,8 @@
         "phpstan": "phpstan analyse --memory-limit=1G",
         "cs": "php-cs-fixer fix --dry-run --diff",
         "cs:fix": "php-cs-fixer fix",
+        "rector": "rector process --dry-run",
+        "rector:fix": "rector process",
         "twig": [
             "@php bin/console lint:twig templates",
             "twig-cs-fixer lint"
@@ -95,10 +97,12 @@
             "@lint",
             "@cs",
             "@phpstan",
+            "@rector",
             "@twig",
             "@test"
         ],
         "fix": [
+            "@rector:fix",
             "@cs:fix",
             "@twig:fix"
         ]
@@ -124,6 +128,7 @@
         "phpstan/phpstan-strict-rules": "^2.1",
         "phpstan/phpstan-symfony": "^2.1",
         "phpunit/phpunit": "^13.4",
+        "rector/rector": "^2.7",
         "symfony/browser-kit": "8.1.*",
         "symfony/css-selector": "8.1.*",
         "symfony/maker-bundle": "^1.68",

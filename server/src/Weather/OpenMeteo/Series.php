@@ -9,8 +9,8 @@ namespace App\Weather\OpenMeteo;
  */
 final class Series
 {
-    public const DATETIME_FORMAT = '!Y-m-d\TH:i';
-    public const DATE_FORMAT = '!Y-m-d';
+    public const string DATETIME_FORMAT = '!Y-m-d\TH:i';
+    public const string DATE_FORMAT = '!Y-m-d';
 
     /**
      * @template T

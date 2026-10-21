@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\Attribute\AsTaggedItem;
 final class ClockWidget implements WidgetInterface
 {
     /** Au-delà, l'heure affichée devient la plage jusqu'au prochain rafraîchissement */
-    private const PRECISE_REFRESH_SECONDS = 60;
+    private const int PRECISE_REFRESH_SECONDS = 60;
 
     public function template(): string
     {

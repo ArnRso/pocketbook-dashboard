@@ -51,7 +51,7 @@ final class TransitNetworkTest extends KernelTestCase
 
     public function testStopIsDescribedWithTheNamesOfTheNetwork(): void
     {
-        $stop = (new TransitStop())->setStopArea('bordeaux:StopPoint:BP:TPALMER:LOC')->setRoute('bordeaux:Line:163:LOC#0');
+        $stop = new TransitStop()->setStopArea('bordeaux:StopPoint:BP:TPALMER:LOC')->setRoute('bordeaux:Line:163:LOC#0');
 
         $this->network()->describe($stop);
 
@@ -64,7 +64,7 @@ final class TransitNetworkTest extends KernelTestCase
         $this->expectException(TransitException::class);
         $this->expectExceptionMessageIs('Arrêt ou ligne inconnu du réseau TBM.');
 
-        $this->network()->describe((new TransitStop())->setStopArea('bordeaux:StopPoint:BP:TPALMER:LOC')->setRoute('bordeaux:Line:163:LOC#7'));
+        $this->network()->describe(new TransitStop()->setStopArea('bordeaux:StopPoint:BP:TPALMER:LOC')->setRoute('bordeaux:Line:163:LOC#7'));
     }
 
     public function testNetworkIsFetchedOnce(): void
@@ -84,7 +84,7 @@ final class TransitNetworkTest extends KernelTestCase
 
     public function testRouteIsSplitIntoLineAndDirection(): void
     {
-        $stop = (new TransitStop())->setRoute('bordeaux:Line:163:LOC#1');
+        $stop = new TransitStop()->setRoute('bordeaux:Line:163:LOC#1');
 
         self::assertSame(['bordeaux:Line:163:LOC', '1', 'bordeaux:Line:163:LOC#1'], [$stop->getLine(), $stop->getDirection(), $stop->getRoute()]);
 

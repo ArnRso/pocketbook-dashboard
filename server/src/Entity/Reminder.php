@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Rappel affiché par la tuile « Rappels » pendant ses plages : « Sortir la poubelle verte ».
  */
 #[ORM\Entity(repositoryClass: ReminderRepository::class)]
-class Reminder
+class Reminder implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

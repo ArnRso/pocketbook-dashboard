@@ -18,7 +18,7 @@ final class AppFixturesTest extends KernelTestCase
     public function testDemoDataIsUsable(): void
     {
         $container = self::getContainer();
-        (new AppFixtures($container->get(DeviceManager::class)))->load($container->get(EntityManagerInterface::class));
+        new AppFixtures($container->get(DeviceManager::class))->load($container->get(EntityManagerInterface::class));
 
         $device = $container->get(DeviceManager::class)->authenticate(AppFixtures::DEVICE_TOKEN);
         $dashboard = $device?->getDashboard();

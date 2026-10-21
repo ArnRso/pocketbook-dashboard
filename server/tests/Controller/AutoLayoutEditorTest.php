@@ -165,16 +165,16 @@ final class AutoLayoutEditorTest extends FunctionalTestCase
      */
     private function createAutoDashboard(): Dashboard
     {
-        $home = (new Place())->setLabel('Maison')->setAddress('Place Bellecour, Lyon')->setLatitude(45.7576)->setLongitude(4.832);
-        $current = (new CurrentWeatherTile())->setPlace($home)->setAutoWidth(TileWidth::Half);
+        $home = new Place()->setLabel('Maison')->setAddress('Place Bellecour, Lyon')->setLatitude(45.7576)->setLongitude(4.832);
+        $current = new CurrentWeatherTile()->setPlace($home)->setAutoWidth(TileWidth::Half);
         $current->getSchedule()->setStartTime(new \DateTimeImmutable('06:00'))->setEndTime(new \DateTimeImmutable('20:00'));
 
-        $dashboard = (new Dashboard())
+        $dashboard = new Dashboard()
             ->setName('Entrée')
-            ->addTile((new ClockTile())->setAutoSize(TileSize::Small))
+            ->addTile(new ClockTile()->setAutoSize(TileSize::Small))
             ->addTile($current)
-            ->addTile((new RainTile())->setPlace($home)->setAutoWidth(TileWidth::Half))
-            ->addTile((new HourlyForecastTile())->setPlace($home));
+            ->addTile(new RainTile()->setPlace($home)->setAutoWidth(TileWidth::Half))
+            ->addTile(new HourlyForecastTile()->setPlace($home));
 
         $this->entityManager()->persist($home);
         $this->entityManager()->persist($dashboard);

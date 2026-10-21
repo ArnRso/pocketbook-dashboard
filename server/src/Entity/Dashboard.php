@@ -18,7 +18,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 #[ORM\Entity(repositoryClass: DashboardRepository::class)]
 #[UniqueEntity('name', message: 'Un dashboard porte déjà ce nom.')]
-class Dashboard
+class Dashboard implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

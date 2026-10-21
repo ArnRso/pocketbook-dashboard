@@ -51,6 +51,6 @@ final class CommuteTest extends TestCase
 
     public function testDelayIsNeverNegative(): void
     {
-        self::assertSame(0.0, (new Route('A', 17, 18, 9))->delay());
+        self::assertSame(0.0, new Route('A', 17, 18, 9)->delay());
     }
 }

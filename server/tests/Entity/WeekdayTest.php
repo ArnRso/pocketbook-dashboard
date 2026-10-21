@@ -26,7 +26,7 @@ final class WeekdayTest extends TestCase
 
     public function testNumberingMatchesPhpDates(): void
     {
-        self::assertSame(Weekday::Monday, Weekday::from((int) (new \DateTimeImmutable('2026-10-12'))->format('N')));
-        self::assertSame(Weekday::Sunday, Weekday::from((int) (new \DateTimeImmutable('2026-10-18'))->format('N')));
+        self::assertSame(Weekday::Monday, Weekday::from((int) new \DateTimeImmutable('2026-10-12')->format('N')));
+        self::assertSame(Weekday::Sunday, Weekday::from((int) new \DateTimeImmutable('2026-10-18')->format('N')));
     }
 }

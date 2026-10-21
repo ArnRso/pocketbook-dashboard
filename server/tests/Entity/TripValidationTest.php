@@ -41,14 +41,14 @@ final class TripValidationTest extends KernelTestCase
 
     public function testDescription(): void
     {
-        $trip = $this->trip((new Place())->setLabel('Maison'), (new Place())->setLabel('Travail'));
+        $trip = $this->trip(new Place()->setLabel('Maison'), new Place()->setLabel('Travail'));
 
         self::assertSame('Maison → Travail', (string) $trip);
     }
 
     private function trip(Place $origin, Place $destination): Trip
     {
-        return (new Trip())->setOrigin($origin)->setDestination($destination);
+        return new Trip()->setOrigin($origin)->setDestination($destination);
     }
 
     private function validate(Trip $trip): ConstraintViolationListInterface

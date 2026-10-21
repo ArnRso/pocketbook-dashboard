@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
  * Une plage qui finit avant de commencer dans la semaine (samedi → mardi) passe sur la semaine suivante.
  */
 #[ORM\Entity]
-class ReminderWindow
+class ReminderWindow implements \Stringable
 {
     private const MINUTES_PER_DAY = 24 * 60;
     private const MINUTES_PER_WEEK = 7 * self::MINUTES_PER_DAY;

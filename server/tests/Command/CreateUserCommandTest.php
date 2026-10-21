@@ -68,6 +68,6 @@ final class CreateUserCommandTest extends KernelTestCase
 
     private function tester(): CommandTester
     {
-        return new CommandTester((new Application(self::$kernel ?? self::bootKernel()))->find('app:user:create'));
+        return new CommandTester(new Application(self::$kernel ?? self::bootKernel())->find('app:user:create'));
     }
 }

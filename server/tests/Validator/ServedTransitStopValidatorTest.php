@@ -68,7 +68,7 @@ final class ServedTransitStopValidatorTest extends KernelTestCase
      */
     private function violations(?string $stopArea, ?string $route): array
     {
-        $stop = (new TransitStop())->setStopArea($stopArea)->setRoute($route);
+        $stop = new TransitStop()->setStopArea($stopArea)->setRoute($route);
         $violations = [];
         foreach (self::getContainer()->get(ValidatorInterface::class)->validate($stop) as $violation) {
             $violations[$violation->getPropertyPath()] = (string) $violation->getMessage();
